@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ultimate Mobile Platformer</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+touch-action:none;
+user-select:none;
+}
+
+body{
+overflow:hidden;
+background:#5cc7ff;
+font-family:Arial,sans-serif;
+}
+
+canvas{
+display:block;
+}
+
+#ui{
+position:fixed;
+top:10px;
+left:10px;
+right:10px;
+z-index:50;
+display:flex;
+justify-content:space-between;
+color:white;
+font-weight:bold;
+font-size:18px;
+text-shadow:2px 2px 4px black;
+}
+
+#controls{
+position:fixed;
+bottom:20px;
+left:0;
+width:100%;
+display:flex;
+justify-content:space-between;
+padding:0 20px;
+z-index:100;
+}
+
+.leftControls,
+.rightControls{
+display:flex;
+gap:15px;
+}
+
+.btn{
+width:72px;
+height:72px;
+border-radius:50%;
+border:none;
+background:rgba(255,255,255,0.25);
+backdrop-filter:blur(4px);
+color:white;
+font-size:28px;
+font-weight:bold;
+box-shadow:0 4px 10px rgba(0,0,0,0.4);
+}
+
+.btn:active{
+transform:scale(0.9);
+background:rgba(255,255,255,0.45);
+}
+
+#jumpBtn{
+width:88px;
+height:88px;
+}
+
+#pauseBtn{
+position:fixed;
+top:10px;
+right:10px;
+width:50px;
+height:50px;
+border:none;
+border-radius:12px;
+background:rgba(0,0,0,0.4);
+color:white;
+font-size:22px;
+z-index:150;
+}
+
+#message{
+position:fixed;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+background:rgba(0,0,0,0.75);
+color:white;
+padding:20px 30px;
+border-radius:20px;
+font-size:28px;
+display:none;
+z-index:200;
+}
+</style>
+</head>
+
+<body>
+
+<div id="ui">
+<div>
+Coins: <span id="coins">0</span><br>
+Lives: <span id="lives">3</span>
+</div>
+
+<div>
+Score: <span id="score">0</span><br>
+Time: <span id="timer">300</span>
+</div>
+</div>
+
+<button id="pauseBtn">⏸</button>
+
+<div id="message"></div>
+
+<div id="controls">
+<div class="leftControls">
+<button class="btn" id="leftBtn">◀</button>
+<button class="btn" id="rightBtn">▶</button>
+</div>
+
+<div class="rightControls">
+<button class="btn" id="fireBtn">🔥</button>
+<button class="btn" id="jumpBtn">⬆</button>
+</div>
+</div>
+
+<canvas id="game"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+function resize(){
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+}
+resize();
+addEventListener("resize",resize);
+
+let paused=false;
+
+const gravity = 0.7;
+let cameraX = 0;
+let shake = 0;
+
+let timer = 300;
+
+const keys = {
+left:false,
+right:false,
+jump:false
+};
+
+const player = {
+x:120,
+y:300,
+w:42,
+h:52,
+vx:0,
+vy:0,
+speed:4,
+jump:-20,
+grounded:false,
+jumps:0,
+coins:0,
+lives:3,
+score:0,
+big:false,
+fire:true,
+spawnX:120,
+spawnY:300
+};
+
+const clouds = [
+{x:100,y:100},
+{x:600,y:140},
+{x:1200,y:80}
+];
+
+const popups = [];
+const particles = [];
+const fireballs = [];
+
+function beep(freq,duration){
+const audio = new (window.AudioContext || window.webkitAudioContext)();
+const osc = audio.createOscillator();
+const gain = audio.createGain();
+
+osc.connect(gain);
+gain.connect(audio.destination);
+
+osc.frequency.value = freq;
+osc.type = "square";
+
+osc.start();
+
+gain.gain.setValueAtTime(0.1,audio.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.0001,audio.currentTime + duration/1000);
+
+osc.stop(audio.currentTime + duration/1000);
+}
+
+const level = [
+
+{x:0,y:550,w:1200,h:100,type:"ground"},
+{x:1300,y:550,w:1200,h:100,type:"ground"},
+{x:2600,y:550,w:1200,h:100,type:"ground"},
+
+{x:350,y:420,w:120,h:30,type:"brick"},
+{x:550,y:340,w:120,h:30,type:"brick"},
+{x:850,y:450,w:120,h:30,type:"brick"},
+{x:1200,y:380,w:120,h:30,type:"question"},
+{x:1500,y:320,w:120,h:30,type:"brick"},
+{x:1800,y:420,w:120,h:30,type:"moving"},
+{x:2300,y:280,w:120,h:30,type:"brick"},
+
+{x:2800,y:450,w:100,h:100,type:"pipe"},
+
+{x:2050,y:520,w:180,h:30,type:"lava"},
+
+{x:2450,y:500,w:120,h:20,type:"spring"},
+
+{x:1000,y:470,w:20,h:80,type:"checkpoint"}
+
+];
+
+const coins = [];
+
+for(let i=0;i<25;i++){
+coins.push({
+x:250 + i*110,
+y:260 + Math.sin(i)*60,
+collected:false
+});
+}
+
+const enemies = [
+{x:700,y:510,w:40,h:40,vx:2,min:650,max:900,dead:false,type:"goomba"},
+{x:1600,y:510,w:40,h:40,vx:2,min:1500,max:1800,dead:false,type:"goomba"},
+{x:2600,y:510,w:40,h:40,vx:2,min:2500,max:2800,dead:false,type:"goomba"}
+];
+
+function showMessage(text){
+const m = document.getElementById("message");
+m.innerText = text;
+m.style.display = "block";
+
+setTimeout(()=>{
+m.style.display = "none";
+},1800);
+}
+
+function collide(a,b){
+return (
+a.x < b.x+b.w &&
+a.x+a.w > b.x &&
+a.y < b.y+b.h &&
+a.y+a.h > b.y
+);
+}
+
+function addPopup(text,x,y,color){
+popups.push({
+text,
+x,
+y,
+life:60,
+color
+});
+}
+
+function spawnParticles(x,y,color){
+for(let i=0;i<12;i++){
+particles.push({
+x,y,
+vx:(Math.random()-0.5)*6,
+vy:(Math.random()-0.5)*6,
+life:40,
+color
+});
+}
+}
+
+function updatePlayer(){
+
+if(keys.left) player.vx = -player.speed;
+else if(keys.right) player.vx = player.speed;
+else player.vx *= 0.8;
+
+if(keys.jump){
+
+if(player.grounded){
+player.vy = player.jump;
+player.jumps = 1;
+player.grounded = false;
+beep(250,120);
+spawnParticles(player.x,player.y,"white");
+}
+
+else if(player.jumps < 2){
+player.vy = player.jump;
+player.jumps++;
+beep(500,100);
+spawnParticles(player.x,player.y,"cyan");
+}
+
+keys.jump=false;
+}
+
+player.vy += gravity;
+
+player.x += player.vx;
+
+for(let b of level){
+
+if(b.type==="moving"){
+b.x += Math.sin(Date.now()*0.001)*0.4;
+}
+
+if(collide(player,b)){
+
+if(player.vx>0) player.x = b.x-player.w;
+if(player.vx<0) player.x = b.x+b.w;
+}
+}
+
+player.y += player.vy;
+player.grounded = false;
+
+for(let b of level){
+
+if(collide(player,b)){
+
+if(b.type==="lava"){
+die();
+}
+
+if(b.type==="spring"){
+player.vy = -22;
+beep(800,120);
+}
+
+if(b.type==="checkpoint"){
+player.spawnX = b.x;
+player.spawnY = b.y;
+}
+
+if(player.vy>0){
+
+player.y = b.y-player.h;
+player.vy = 0;
+player.grounded = true;
+player.jumps = 0;
+
+if(b.type==="moving"){
+player.x += Math.sin(Date.now()*0.001)*1.5;
+}
+}
+
+else if(player.vy<0){
+
+player.y = b.y+b.h;
+player.vy = 0;
+
+if(player.big && b.type==="brick"){
+
+spawnParticles(b.x,b.y,"orange");
+b.destroyed=true;
+beep(200,150);
+}
+}
+}
+}
+
+for(let i=level.length-1;i>=0;i--){
+if(level[i].destroyed) level.splice(i,1);
+}
+
+if(player.y > canvas.height + 200){
+die();
+}
+
+cameraX = player.x - canvas.width/3;
+
+if(cameraX<0) cameraX = 0;
+}
+
+function updateCoins(){
+
+for(let c of coins){
+
+if(c.collected) continue;
+
+const dx = player.x+20 - c.x;
+const dy = player.y+20 - c.y;
+
+if(Math.sqrt(dx*dx+dy*dy)<30){
+
+c.collected=true;
+
+player.coins++;
+player.score += 100;
+
+document.getElementById("coins").innerText = player.coins;
+document.getElementById("score").innerText = player.score;
+
+addPopup("+100",c.x,c.y,"gold");
+
+spawnParticles(c.x,c.y,"gold");
+
+beep(900,90);
+
+if(navigator.vibrate){
+navigator.vibrate(40);
+}
+}
+}
+}
+
+function shootFireball(){
+
+if(!player.fire) return;
+
+fireballs.push({
+x:player.x+20,
+y:player.y+20,
+vx:8,
+vy:-2,
+life:150
+});
+
+beep(600,80);
+}
+
+function updateFireballs(){
+
+for(let f of fireballs){
+
+f.x += f.vx;
+f.y += f.vy;
+f.vy += 0.2;
+
+for(let b of level){
+
+if(collide(
+{x:f.x,y:f.y,w:12,h:12},
+b
+)){
+
+if(b.type==="ground" || b.type==="brick"){
+f.vy = -5;
+}
+}
+}
+
+for(let e of enemies){
+
+if(e.dead) continue;
+
+if(collide(
+{x:f.x,y:f.y,w:12,h:12},
+e
+)){
+
+e.dead=true;
+f.life=0;
+
+player.score += 200;
+document.getElementById("score").innerText = player.score;
+
+addPopup("+200",e.x,e.y,"orange");
+
+spawnParticles(e.x,e.y,"orange");
+
+beep(200,150);
+}
+}
+
+f.life--;
+}
+
+for(let i=fireballs.length-1;i>=0;i--){
+if(fireballs[i].life<=0){
+fireballs.splice(i,1);
+}
+}
+}
+
+function updateEnemies(){
+
+for(let e of enemies){
+
+if(e.dead) continue;
+
+e.x += e.vx;
+
+if(e.x<e.min || e.x>e.max){
+e.vx *= -1;
+}
+
+if(collide(player,e)){
+
+if(player.vy>0 && player.y+player.h-e.y<20){
+
+e.dead=true;
+
+player.vy = -10;
+
+player.score += 150;
+
+document.getElementById("score").innerText = player.score;
+
+addPopup("+150",e.x,e.y,"white");
+
+spawnParticles(e.x,e.y,"brown");
+
+shake = 10;
+
+beep(180,150);
+
+if(navigator.vibrate){
+navigator.vibrate(60);
+}
+}
+
+else{
+die();
+}
+}
+}
+}
+
+function die(){
+
+shake = 20;
+
+player.lives--;
+
+document.getElementById("lives").innerText = player.lives;
+
+beep(100,400);
+
+showMessage("You Died!");
+
+player.x = player.spawnX;
+player.y = player.spawnY;
+
+player.vx = 0;
+player.vy = 0;
+
+if(player.lives<=0){
+
+showMessage("GAME OVER");
+
+localStorage.setItem("highScore",player.score);
+
+player.lives = 3;
+player.score = 0;
+player.coins = 0;
+
+document.getElementById("score").innerText = 0;
+document.getElementById("coins").innerText = 0;
+document.getElementById("lives").innerText = 3;
+
+coins.forEach(c=>c.collected=false);
+enemies.forEach(e=>e.dead=false);
+}
+}
+
+function updateParticles(){
+
+for(let p of particles){
+p.x += p.vx;
+p.y += p.vy;
+p.life--;
+}
+
+for(let i=particles.length-1;i>=0;i--){
+if(particles[i].life<=0){
+particles.splice(i,1);
+}
+}
+}
+
+function updatePopups(){
+
+for(let p of popups){
+p.y -= 1;
+p.life--;
+}
+
+for(let i=popups.length-1;i>=0;i--){
+if(popups[i].life<=0){
+popups.splice(i,1);
+}
+}
+}
+
+function drawBackground(){
+
+ctx.fillStyle="#5cc7ff";
+ctx.fillRect(0,0,canvas.width,canvas.height);
+
+ctx.fillStyle="white";
+
+for(let c of clouds){
+
+const x = c.x - cameraX*0.3;
+
+ctx.fillRect(x,c.y,90,30);
+ctx.fillRect(x+20,c.y-15,50,25);
+}
+
+ctx.fillStyle="#55aa33";
+
+for(let i=0;i<20;i++){
+
+ctx.beginPath();
+
+ctx.arc(
+i*300 - cameraX*0.2,
+canvas.height,
+220,
+Math.PI,
+Math.PI*2
+);
+
+ctx.fill();
+}
+}
+
+function drawLevel(){
+
+for(let b of level){
+
+const x = b.x - cameraX;
+
+if(b.type==="ground") ctx.fillStyle="#7a4b1f";
+if(b.type==="brick") ctx.fillStyle="#c96b2c";
+if(b.type==="question") ctx.fillStyle="gold";
+if(b.type==="pipe") ctx.fillStyle="green";
+if(b.type==="moving") ctx.fillStyle="#999";
+if(b.type==="lava") ctx.fillStyle="red";
+if(b.type==="spring") ctx.fillStyle="lime";
+if(b.type==="checkpoint") ctx.fillStyle="white";
+
+ctx.fillRect(x,b.y,b.w,b.h);
+
+if(b.type==="question"){
+ctx.fillStyle="black";
+ctx.font="30px Arial";
+ctx.fillText("?",x+40,b.y+40);
+}
+}
+}
+
+function drawCoins(){
+
+for(let c of coins){
+
+if(c.collected) continue;
+
+ctx.fillStyle="gold";
+
+ctx.beginPath();
+ctx.arc(c.x-cameraX,c.y,12,0,Math.PI*2);
+ctx.fill();
+}
+}
+
+function drawEnemies(){
+
+for(let e of enemies){
+
+if(e.dead) continue;
+
+ctx.fillStyle="brown";
+
+ctx.fillRect(e.x-cameraX,e.y,e.w,e.h);
+
+ctx.fillStyle="white";
+
+ctx.fillRect(e.x-cameraX+8,e.y+10,6,6);
+ctx.fillRect(e.x-cameraX+24,e.y+10,6,6);
+}
+}
+
+function drawPlayer(){
+
+ctx.fillStyle = player.big ? "#ff66aa" : "#ff3333";
+
+ctx.fillRect(
+player.x-cameraX,
+player.y,
+player.w,
+player.h
+);
+
+ctx.fillStyle="white";
+
+ctx.fillRect(player.x-cameraX+8,player.y+10,7,7);
+ctx.fillRect(player.x-cameraX+24,player.y+10,7,7);
+}
+
+function drawParticles(){
+
+for(let p of particles){
+
+ctx.globalAlpha = p.life/40;
+
+ctx.fillStyle = p.color;
+
+ctx.fillRect(
+p.x-cameraX,
+p.y,
+4,
+4
+);
+}
+
+ctx.globalAlpha = 1;
+}
+
+function drawFireballs(){
+
+for(let f of fireballs){
+
+ctx.fillStyle="orange";
+
+ctx.beginPath();
+
+ctx.arc(
+f.x-cameraX,
+f.y,
+10,
+0,
+Math.PI*2
+);
+
+ctx.fill();
+}
+}
+
+function drawPopups(){
+
+for(let p of popups){
+
+ctx.globalAlpha = p.life/60;
+
+ctx.fillStyle = p.color;
+
+ctx.font="22px Arial";
+
+ctx.fillText(
+p.text,
+p.x-cameraX,
+p.y
+);
+}
+
+ctx.globalAlpha = 1;
+}
+
+function gameLoop(){
+
+if(paused){
+requestAnimationFrame(gameLoop);
+return;
+}
+
+ctx.save();
+
+if(shake>0){
+
+ctx.translate(
+Math.random()*6-3,
+Math.random()*6-3
+);
+
+shake--;
+}
+
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+drawBackground();
+
+updatePlayer();
+updateCoins();
+updateEnemies();
+updateParticles();
+updatePopups();
+updateFireballs();
+
+drawLevel();
+drawCoins();
+drawEnemies();
+drawPlayer();
+drawParticles();
+drawFireballs();
+drawPopups();
+
+ctx.restore();
+
+requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+
+setInterval(()=>{
+
+if(!paused){
+
+timer--;
+
+document.getElementById("timer").innerText = timer;
+
+if(timer<=0){
+die();
+timer = 300;
+}
+}
+
+},1000);
+
+document.getElementById("pauseBtn").onclick = ()=>{
+
+paused = !paused;
+
+document.getElementById("pauseBtn").innerText =
+paused ? "▶" : "⏸";
+};
+
+function bind(id,key){
+
+const btn = document.getElementById(id);
+
+btn.addEventListener("touchstart",e=>{
+
+e.preventDefault();
+
+if(key==="fire"){
+shootFireball();
+}
+else{
+keys[key]=true;
+}
+});
+
+btn.addEventListener("touchend",e=>{
+
+e.preventDefault();
+
+keys[key]=false;
+});
+}
+
+bind("leftBtn","left");
+bind("rightBtn","right");
+bind("jumpBtn","jump");
+bind("fireBtn","fire");
+
+addEventListener("keydown",e=>{
+
+if(e.code==="ArrowLeft") keys.left=true;
+if(e.code==="ArrowRight") keys.right=true;
+if(e.code==="ArrowUp" || e.code==="Space") keys.jump=true;
+if(e.code==="KeyF") shootFireball();
+});
+
+addEventListener("keyup",e=>{
+
+if(e.code==="ArrowLeft") keys.left=false;
+if(e.code==="ArrowRight") keys.right=false;
+});
+
+</script>
+</body>
+</html>
