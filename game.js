@@ -934,7 +934,23 @@ document.addEventListener(
 
     }
 );
+for(let i=0;i<30;i++){
 
+    ctx.fillStyle="#2E8B57";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        i*180+80,
+        canvas.height-80,
+        25,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+}
 function updateHUD(){
 
     document.getElementById(
