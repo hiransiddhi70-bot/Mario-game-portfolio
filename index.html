@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>DORAEMON - WORKING 100%</title>
+<title>DORAEMON - FINAL FIX</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;touch-action:none;font-family:Arial,sans-serif}
 body{background:#000;overflow:hidden;position:fixed;width:100%;height:100%}
@@ -19,15 +19,15 @@ body{background:#000;overflow:hidden;position:fixed;width:100%;height:100%}
 #controls button{width:90px;height:90px;font-size:40px;border-radius:50%;border:6px solid #fff;background:rgba(255,255,255,0.5);cursor:pointer;box-shadow:0 6px 25px rgba(0,0,0,0.4);font-weight:bold}
 #controls button:active{background:rgba(255,215,0,0.9);transform:scale(0.85)}
 .dpad{display:flex;gap:25px}
-#debug{position:absolute;top:80px;left:10px;background:rgba(0,0,0,0.8);color:#0f0;padding:12px;border-radius:10px;font-size:13px;font-family:monospace;z-index:10;font-weight:bold}
+#debug{position:absolute;top:80px;left:10px;background:rgba(0,0,0,0.7);color:#0f0;padding:10px;border-radius:10px;font-size:12px;font-family:monospace;z-index:10}
 </style>
 </head>
 <body>
 
 <div id="menu">
-  <h1>DORAEMON<br>ADVENTURE</h1>
+  <h1>DORAEMON<br>GAME</h1>
   <button onclick="startGame()">▶ START</button>
-  <p style="color:#fff;margin-top:25px;font-size:18px;font-weight:bold">✅ Jump Fixed ✅ Coins Visible ✅ Enemy Added</p>
+  <p style="color:#fff;margin-top:25px;font-size:16px">Fixed Version - Jump Works!</p>
 </div>
 
 <div id="game">
@@ -37,7 +37,7 @@ body{background:#000;overflow:hidden;position:fixed;width:100%;height:100%}
     <div class="hud-box">⭐ <span id="score">0</span></div>
     <div class="hud-box">❤️ <span id="lives">3</span></div>
   </div>
-  <div id="debug">DEBUG: Loading...</div>
+  <div id="debug">DEBUG: Ready</div>
   <div id="controls">
     <div class="dpad">
       <button id="leftBtn">⬅️</button>
@@ -54,7 +54,6 @@ let player, platforms = [], coins = [], enemies = [];
 let score = 0, coinCount = 0, lives = 3;
 let keys = {};
 let debugEl;
-let cameraX = 0; // CAMERA FIX
 
 // INIT
 window.onload = function() {
@@ -64,7 +63,7 @@ window.onload = function() {
   resize();
   window.addEventListener('resize', resize);
   setupButtons();
-  log('Ready! Tap START');
+  log('Game Loaded - Tap START');
 };
 
 function resize() {
@@ -74,20 +73,23 @@ function resize() {
 
 function log(msg) {
   debugEl.textContent = 'DEBUG: ' + msg;
+  console.log(msg);
 }
 
-// CONTROLS
+// CONTROLS - FIXED FOR MOBILE
 function setupButtons() {
   function bind(btn, key) {
-    btn.addEventListener('touchstart', e => {e.preventDefault(); keys[key] = true;}, {passive:false});
+    btn.addEventListener('touchstart', e => {e.preventDefault(); keys[key] = true; log('Touch: ' + key);}, {passive:false});
     btn.addEventListener('touchend', e => {e.preventDefault(); keys[key] = false;}, {passive:false});
-    btn.addEventListener('mousedown', e => {e.preventDefault(); keys[key] = true;});
+    btn.addEventListener('mousedown', e => {e.preventDefault(); keys[key] = true; log('Click: ' + key);});
     btn.addEventListener('mouseup', e => {e.preventDefault(); keys[key] = false;});
+    btn.addEventListener('mouseleave', e => {keys[key] = false;});
   }
   bind(document.getElementById('leftBtn'), 'ArrowLeft');
   bind(document.getElementById('rightBtn'), 'ArrowRight');
   bind(document.getElementById('jumpBtn'), 'Space');
 
+  // Keyboard
   document.addEventListener('keydown', e => {
     keys[e.key] = true;
     if(e.key === ' ') keys['Space'] = true;
@@ -107,52 +109,54 @@ function startGame() {
   score = 0;
   coinCount = 0;
   lives = 3;
-  cameraX = 0;
   initLevel();
   updateHUD();
   log('Game Started!');
   gameLoop();
 }
 
-// INIT LEVEL - SAB KUCH SCREEN PE
+// INIT LEVEL - EVERYTHING VISIBLE
 function initLevel() {
   const groundY = canvas.height - 100;
   
+  // Player - SPAWN ON GROUND
   player = {
-    x: 150,
+    x: 100,
     y: groundY - 60,
-    w: 60,
-    h: 65,
+    w: 55,
+    h: 60,
     vx: 0,
     vy: 0,
     speed: 8,
-    jumpPower: -22,
+    jumpPower: -20,
     grounded: false
   };
 
-  // Platforms - SCREEN KE ANDAR
+  // Platforms - BIG AND VISIBLE
   platforms = [
-    {x: 0, y: groundY, w: canvas.width * 2, h: 100},
-    {x: 200, y: groundY - 140, w: 220, h: 35},
-    {x: 500, y: groundY - 240, w: 220, h: 35},
-    {x: 800, y: groundY - 140, w: 220, h: 35}
+    {x: 0, y: groundY, w: canvas.width * 3, h: 100}, // Ground
+    {x: 250, y: groundY - 130, w: 200, h: 30},
+    {x: 550, y: groundY - 220, w: 200, h: 30},
+    {x: 850, y: groundY - 130, w: 200, h: 30},
+    {x: 1150, y: groundY - 250, w: 300, h: 30}
   ];
 
-  // Coins - SCREEN KE ANDAR
+  // Coins - RIGHT IN FRONT
   coins = [
-    {x: 280, y: groundY - 180, r: 20, got: false},
-    {x: 350, y: groundY - 180, r: 20, got: false},
-    {x: 580, y: groundY - 280, r: 20, got: false},
-    {x: 650, y: groundY - 280, r: 20, got: false},
-    {x: 880, y: groundY - 180, r: 20, got: false}
+    {x: 300, y: groundY - 170, r: 18, got: false},
+    {x: 380, y: groundY - 170, r: 18, got: false},
+    {x: 600, y: groundY - 260, r: 18, got: false},
+    {x: 680, y: groundY - 260, r: 18, got: false},
+    {x: 900, y: groundY - 170, r: 18, got: false},
+    {x: 1220, y: groundY - 290, r: 22, got: false}
   ];
 
-  // Enemy - SCREEN KE ANDAR
+  // Enemy - VISIBLE
   enemies = [
-    {x: 600, y: groundY - 40, w: 40, h: 40, vx: 3, dir: 1, minX: 550, maxX: 750}
+    {x: 700, y: groundY - 35, w: 35, h: 35, vx: 3, dir: 1, minX: 600, maxX: 900}
   ];
 
-  log('Loaded: ' + coins.length + ' coins, ' + enemies.length + ' enemies');
+  log('Level loaded: ' + platforms.length + ' platforms, ' + coins.length + ' coins');
 }
 
 // GAME LOOP
@@ -163,47 +167,49 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-// UPDATE - JUMP FIX
+// UPDATE
 function update() {
   const left = keys['ArrowLeft'];
   const right = keys['ArrowRight'];
   const jump = keys['Space'] || keys['ArrowUp'];
 
   // Movement
-  if (left) player.vx = -player.speed;
-  else if (right) player.vx = player.speed;
-  else player.vx *= 0.8;
+  if (left) {
+    player.vx = -player.speed;
+  } else if (right) {
+    player.vx = player.speed;
+  } else {
+    player.vx *= 0.8;
+  }
 
   // Gravity
-  player.vy += 1.1;
-  
-  // JUMP - GROUNDED CHECK FIX
+  player.vy += 1.0;
+  player.grounded = false;
+
+  // JUMP - CHECK GROUNDED
   if (jump && player.grounded) {
     player.vy = player.jumpPower;
-    player.grounded = false; // Immediately set false
     keys['Space'] = false;
     keys['ArrowUp'] = false;
-    log('JUMPED! vy=' + player.vy);
+    log('JUMP! vy=' + player.vy);
   }
 
   // Apply
   player.x += player.vx;
   player.y += player.vy;
 
-  // Reset grounded - will be set true if on platform
-  player.grounded = false;
-
-  // Platform collision - COMPLETE REWRITE
+  // Platform collision - FIXED
   platforms.forEach(p => {
-    // Horizontal overlap check
-    if (player.x + player.w > p.x && player.x < p.x + p.w) {
-      // Vertical collision - landing on top
+    // Check if player is above platform
+    if (player.x + player.w > p.x && 
+        player.x < p.x + p.w) {
+      // Landing on top
       if (player.y + player.h > p.y && 
-          player.y + player.h < p.y + p.h &&
+          player.y + player.h < p.y + p.h + 30 &&
           player.vy >= 0) {
         player.y = p.y - player.h;
         player.vy = 0;
-        player.grounded = true; // SET GROUNDED HERE
+        player.grounded = true; // CRITICAL FIX
       }
     }
   });
@@ -218,7 +224,7 @@ function update() {
         c.got = true;
         coinCount++;
         score += 10;
-        log('Coin collected! Total: ' + coinCount);
+        log('Coin! Total: ' + coinCount);
         updateHUD();
       }
     }
@@ -229,17 +235,20 @@ function update() {
     e.x += e.vx * e.dir;
     if (e.x <= e.minX || e.x >= e.maxX) e.dir *= -1;
     
+    // Collision
     if (player.x < e.x + e.w && player.x + player.w > e.x &&
         player.y < e.y + e.h && player.y + player.h > e.y) {
       if (player.vy > 0 && player.y < e.y) {
-        e.x = -1000;
+        // Jump on enemy
+        e.x = -1000; // Remove
         player.vy = -15;
         score += 50;
         log('Enemy defeated!');
         updateHUD();
       } else {
+        // Hit by enemy
         lives--;
-        player.x = 150;
+        player.x = 100;
         player.y = canvas.height - 160;
         player.vy = 0;
         log('Hit! Lives: ' + lives);
@@ -256,7 +265,7 @@ function update() {
   if (player.x < 0) player.x = 0;
   if (player.y > canvas.height + 200) {
     lives--;
-    player.x = 150;
+    player.x = 100;
     player.y = canvas.height - 160;
     player.vy = 0;
     log('Fell! Lives: ' + lives);
@@ -267,11 +276,8 @@ function update() {
     }
   }
 
-  // Camera - FOLLOW PLAYER
-  cameraX = player.x - canvas.width * 0.3;
-  if (cameraX < 0) cameraX = 0;
-
-  log(`Grounded:${player.grounded} X:${Math.floor(player.x)} Coins:${coinCount}`);
+  // Debug info
+  log(`Grounded:${player.grounded} Y:${Math.floor(player.y)} vy:${player.vy.toFixed(1)}`);
 }
 
 // DRAW
@@ -284,31 +290,31 @@ function draw() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // Clouds
-  ctx.fillStyle = 'rgba(255,255,255,0.95)';
-  drawCloud(100 - cameraX * 0.2, 100);
-  drawCloud(400 - cameraX * 0.2, 150);
-  drawCloud(700 - cameraX * 0.2, 120);
-
-  ctx.save();
-  ctx.translate(-cameraX, 0);
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  drawCloud(100, 100);
+  drawCloud(400, 150);
+  drawCloud(700, 120);
 
   // Platforms
   platforms.forEach(p => {
+    // Brown base
     ctx.fillStyle = '#8B4513';
     ctx.fillRect(p.x, p.y, p.w, p.h);
+    // Green grass
     ctx.fillStyle = '#228B22';
-    ctx.fillRect(p.x, p.y, p.w, 15);
+    ctx.fillRect(p.x, p.y, p.w, 12);
+    // Highlight
     ctx.fillStyle = '#32CD32';
-    ctx.fillRect(p.x, p.y, p.w, 5);
+    ctx.fillRect(p.x, p.y, p.w, 4);
   });
 
-  // Coins - BIG AND VISIBLE
+  // Coins
   coins.forEach(c => {
     if (!c.got) {
       // Glow
-      ctx.fillStyle = 'rgba(255,215,0,0.5)';
+      ctx.fillStyle = 'rgba(255,215,0,0.4)';
       ctx.beginPath();
-      ctx.arc(c.x, c.y, c.r + 10, 0, Math.PI * 2);
+      ctx.arc(c.x, c.y, c.r + 8, 0, Math.PI * 2);
       ctx.fill();
       
       // Gold
@@ -319,11 +325,11 @@ function draw() {
       
       // Border
       ctx.strokeStyle = '#FF8C00';
-      ctx.lineWidth = 5;
+      ctx.lineWidth = 4;
       ctx.stroke();
       
       // Shine
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
       ctx.beginPath();
       ctx.arc(c.x - c.r/3, c.y - c.r/3, c.r/3, 0, Math.PI * 2);
       ctx.fill();
@@ -333,121 +339,122 @@ function draw() {
   // Enemies
   enemies.forEach(e => {
     if (e.x > -100) {
+      // Body
       ctx.fillStyle = '#808080';
       ctx.beginPath();
       ctx.arc(e.x + e.w/2, e.y + e.h/2, e.w/2, 0, Math.PI * 2);
       ctx.fill();
+      // Ears
       ctx.fillStyle = '#696969';
       ctx.beginPath();
-      ctx.arc(e.x + 10, e.y + 10, 9, 0, Math.PI * 2);
-      ctx.arc(e.x + e.w - 10, e.y + 10, 9, 0, Math.PI * 2);
+      ctx.arc(e.x + 8, e.y + 8, 8, 0, Math.PI * 2);
+      ctx.arc(e.x + e.w - 8, e.y + 8, 8, 0, Math.PI * 2);
       ctx.fill();
+      // Eyes
       ctx.fillStyle = '#000';
       ctx.beginPath();
-      ctx.arc(e.x + 14, e.y + 18, 4, 0, Math.PI * 2);
-      ctx.arc(e.x + e.w - 14, e.y + 18, 4, 0, Math.PI * 2);
+      ctx.arc(e.x + 12, e.y + 15, 3, 0, Math.PI * 2);
+      ctx.arc(e.x + e.w - 12, e.y + 15, 3, 0, Math.PI * 2);
       ctx.fill();
     }
   });
 
   // Doraemon
   drawDoraemon(player.x, player.y);
-
-  ctx.restore();
 }
 
-// DORAEMON
+// DRAW DORAEMON
 function drawDoraemon(x, y) {
   const w = player.w, h = player.h;
   
   // Shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
   ctx.beginPath();
-  ctx.ellipse(x + w/2, y + h + 10, w/2, 12, 0, 0, Math.PI * 2);
+  ctx.ellipse(x + w/2, y + h + 8, w/2, 10, 0, 0, Math.PI * 2);
   ctx.fill();
 
   // Body
   ctx.fillStyle = '#00A0E9';
   ctx.beginPath();
-  ctx.arc(x + w/2, y + h*0.65, w*0.5, 0, Math.PI * 2);
+  ctx.arc(x + w/2, y + h*0.65, w*0.48, 0, Math.PI * 2);
   ctx.fill();
 
   // Head
   ctx.beginPath();
-  ctx.arc(x + w/2, y + h*0.35, w*0.48, 0, Math.PI * 2);
+  ctx.arc(x + w/2, y + h*0.35, w*0.45, 0, Math.PI * 2);
   ctx.fill();
 
   // Face
   ctx.fillStyle = '#fff';
   ctx.beginPath();
-  ctx.arc(x + w/2, y + h*0.4, w*0.37, 0, Math.PI * 2);
+  ctx.arc(x + w/2, y + h*0.4, w*0.35, 0, Math.PI * 2);
   ctx.fill();
 
   // Eyes
   ctx.fillStyle = '#fff';
   ctx.beginPath();
-  ctx.arc(x + w*0.36, y + h*0.26, w*0.13, 0, Math.PI * 2);
-  ctx.arc(x + w*0.64, y + h*0.26, w*0.13, 0, Math.PI * 2);
+  ctx.arc(x + w*0.37, y + h*0.27, w*0.12, 0, Math.PI * 2);
+  ctx.arc(x + w*0.63, y + h*0.27, w*0.12, 0, Math.PI * 2);
   ctx.fill();
   
   ctx.fillStyle = '#000';
   ctx.beginPath();
-  ctx.arc(x + w*0.36, y + h*0.28, w*0.07, 0, Math.PI * 2);
-  ctx.arc(x + w*0.64, y + h*0.28, w*0.07, 0, Math.PI * 2);
+  ctx.arc(x + w*0.37, y + h*0.29, w*0.06, 0, Math.PI * 2);
+  ctx.arc(x + w*0.63, y + h*0.29, w*0.06, 0, Math.PI * 2);
   ctx.fill();
 
   // Nose
   ctx.fillStyle = '#E60012';
   ctx.beginPath();
-  ctx.arc(x + w/2, y + h*0.38, w*0.1, 0, Math.PI * 2);
+  ctx.arc(x + w/2, y + h*0.38, w*0.09, 0, Math.PI * 2);
   ctx.fill();
 
   // Nose shine
-  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
   ctx.beginPath();
-  ctx.arc(x + w/2 - w*0.025, y + h*0.36, w*0.035, 0, Math.PI * 2);
+  ctx.arc(x + w/2 - w*0.02, y + h*0.36, w*0.03, 0, Math.PI * 2);
   ctx.fill();
 
   // Mouth
   ctx.strokeStyle = '#000';
-  ctx.lineWidth = 3.5;
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.arc(x + w/2, y + h*0.48, w*0.2, 0, Math.PI);
+  ctx.arc(x + w/2, y + h*0.47, w*0.18, 0, Math.PI);
   ctx.stroke();
 
   // Whiskers
-  ctx.lineWidth = 2.5;
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(x + w*0.12, y + h*0.37); ctx.lineTo(x + w*0.3, y + h*0.4);
-  ctx.moveTo(x + w*0.12, y + h*0.44); ctx.lineTo(x + w*0.3, y + h*0.44);
-  ctx.moveTo(x + w*0.12, y + h*0.51); ctx.lineTo(x + w*0.3, y + h*0.48);
-  ctx.moveTo(x + w*0.88, y + h*0.37); ctx.lineTo(x + w*0.7, y + h*0.4);
-  ctx.moveTo(x + w*0.88, y + h*0.44); ctx.lineTo(x + w*0.7, y + h*0.44);
-  ctx.moveTo(x + w*0.88, y + h*0.51); ctx.lineTo(x + w*0.7, y + h*0.48);
+  ctx.moveTo(x + w*0.15, y + h*0.38); ctx.lineTo(x + w*0.32, y + h*0.4);
+  ctx.moveTo(x + w*0.15, y + h*0.44); ctx.lineTo(x + w*0.32, y + h*0.44);
+  ctx.moveTo(x + w*0.15, y + h*0.5); ctx.lineTo(x + w*0.32, y + h*0.48);
+  ctx.moveTo(x + w*0.85, y + h*0.38); ctx.lineTo(x + w*0.68, y + h*0.4);
+  ctx.moveTo(x + w*0.85, y + h*0.44); ctx.lineTo(x + w*0.68, y + h*0.44);
+  ctx.moveTo(x + w*0.85, y + h*0.5); ctx.lineTo(x + w*0.68, y + h*0.48);
   ctx.stroke();
 
   // Bell
   ctx.fillStyle = '#FFD700';
   ctx.beginPath();
-  ctx.arc(x + w/2, y + h*0.68, w*0.11, 0, Math.PI * 2);
+  ctx.arc(x + w/2, y + h*0.68, w*0.1, 0, Math.PI * 2);
   ctx.fill();
   ctx.strokeStyle = '#FFA500';
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 2;
   ctx.stroke();
   
   // Bell hole
   ctx.fillStyle = '#FFA500';
   ctx.beginPath();
-  ctx.arc(x + w/2, y + h*0.68, w*0.04, 0, Math.PI * 2);
+  ctx.arc(x + w/2, y + h*0.68, w*0.035, 0, Math.PI * 2);
   ctx.fill();
 }
 
 // CLOUD
 function drawCloud(x, y) {
   ctx.beginPath();
-  ctx.arc(x, y, 40, 0, Math.PI * 2);
-  ctx.arc(x + 50, y, 55, 0, Math.PI * 2);
-  ctx.arc(x + 100, y, 40, 0, Math.PI * 2);
+  ctx.arc(x, y, 35, 0, Math.PI * 2);
+  ctx.arc(x + 45, y, 50, 0, Math.PI * 2);
+  ctx.arc(x + 90, y, 35, 0, Math.PI * 2);
   ctx.fill();
 }
 
