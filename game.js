@@ -840,6 +840,100 @@ function drawDoraemon(x,y){
     ctx.fill();
 
 }
+// ===== CONTROLS =====
+
+function setupButtons(){
+
+    function bind(btn,key){
+
+        btn.addEventListener(
+            "touchstart",
+            e=>{
+                e.preventDefault();
+                keys[key]=true;
+            },
+            {passive:false}
+        );
+
+        btn.addEventListener(
+            "touchend",
+            e=>{
+                e.preventDefault();
+                keys[key]=false;
+            },
+            {passive:false}
+        );
+
+        btn.addEventListener(
+            "mousedown",
+            ()=>{
+                keys[key]=true;
+            }
+        );
+
+        btn.addEventListener(
+            "mouseup",
+            ()=>{
+                keys[key]=false;
+            }
+        );
+
+    }
+
+
+    bind(
+        document.getElementById(
+            "leftBtn"
+        ),
+        "ArrowLeft"
+    );
+
+
+    bind(
+        document.getElementById(
+            "rightBtn"
+        ),
+        "ArrowRight"
+    );
+
+
+    bind(
+        document.getElementById(
+            "jumpBtn"
+        ),
+        "Space"
+    );
+
+}
+
+
+
+// ===== KEYBOARD =====
+
+document.addEventListener(
+    "keydown",
+    e=>{
+
+        keys[e.key]=true;
+
+        if(e.key===" ")
+            keys["Space"]=true;
+
+    }
+);
+
+
+document.addEventListener(
+    "keyup",
+    e=>{
+
+        keys[e.key]=false;
+
+        if(e.key===" ")
+            keys["Space"]=false;
+
+    }
+);
 
 function updateHUD(){
 
