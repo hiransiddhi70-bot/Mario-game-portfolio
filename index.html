@@ -1,131 +1,423 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#00A0E9">
-<title>Doraemon Adventure World</title>
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Doraemon Game - WORKING</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;touch-action:none;font-family:Arial,sans-serif}
+body{background:#000;overflow:hidden;position:fixed;width:100%;height:100%}
+#menu{position:fixed;inset:0;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100}
+#menu h1{font-size:3rem;color:#FFD700;text-shadow:4px 4px 0 #FF6B6B;margin-bottom:30px;text-align:center}
+#menu button{padding:20px 60px;font-size:1.8rem;background:linear-gradient(45deg,#FF6B6B,#FFE66D);color:#fff;border:5px solid #fff;border-radius:50px;cursor:pointer;box-shadow:0 8px 0 #C44D58}
+#menu button:active{transform:translateY(4px);box-shadow:0 4px 0 #C44D58}
+#game{display:none;position:fixed;inset:0}
+#canvas{display:block;width:100%;height:100%;background:linear-gradient(to bottom,#87CEEB 0%,#B0E0E6 65%,#6BBE44 65%,#5AA83F 100%)}
+#hud{position:absolute;top:15px;left:0;right:0;display:flex;justify-content:center;gap:10px;padding:0 15px;pointer-events:none;z-index:10}
+.hud-box{background:rgba(0,0,0,0.8);color:#fff;padding:10px 15px;border-radius:25px;font-size:18px;font-weight:bold;border:3px solid rgba(255,255,255,0.5)}
+#controls{position:absolute;bottom:20px;left:0;right:0;display:flex;justify-content:space-between;padding:0 25px;z-index:10}
+#controls button{width:80px;height:80px;font-size:35px;border-radius:50%;border:5px solid #fff;background:rgba(255,255,255,0.4);cursor:pointer;box-shadow:0 5px 20px rgba(0,0,0,0.3)}
+#controls button:active{background:rgba(255,255,255,0.9);transform:scale(0.9)}
+.dpad{display:flex;gap:20px}
+</style>
 </head>
 <body>
 
-<!-- LOADING SCREEN -->
-<div id="loading">
-  <div class="doraemon-loader"></div>
-  <h2>LOADING DORAEMON WORLD...</h2>
-  <div class="loading-bar"><div class="loading-fill"></div></div>
+<div id="menu">
+  <h1>DORAEMON<br>ADVENTURE</h1>
+  <button onclick="startGame()">▶ PLAY NOW</button>
+  <p style="color:#fff;margin-top:20px;font-size:14px">Tap PLAY to start</p>
 </div>
 
-<!-- MAIN MENU -->
-<div id="mainMenu">
-  <div class="menu-bg"></div>
-  <h1>DORAEMON<br>ADVENTURE<br>WORLD</h1>
-  <p class="subtitle">Explore 6 Worlds • Collect Gadgets • Save Friends</p>
-
-  <div class="menu-stats">
-    <div>💰 <span id="totalCoins">0</span></div>
-    <div>🍡 <span id="totalDorayaki">0</span></div>
-    <div>💎 <span id="totalCrystals">0</span></div>
-  </div>
-
-  <button class="menu-btn" onclick="Game.startGame()">▶ START ADVENTURE</button>
-  <button class="menu-btn" onclick="Game.showWorlds()">🗺️ SELECT WORLD</button>
-  <button class="menu-btn" onclick="Game.showGadgets()">🎒 GADGETS</button>
-  <button class="menu-btn" onclick="Game.showAchievements()">🏆 ACHIEVEMENTS</button>
-</div>
-
-<!-- WORLD SELECT -->
-<div id="worldSelect">
-  <h2>SELECT WORLD</h2>
-  <div class="worlds-grid">
-    <div class="world-card unlocked" data-world="nobita">
-      <div class="world-icon">🏠</div>
-      <h3>Nobita's House</h3>
-      <p>Tutorial World</p>
-    </div>
-    <div class="world-card" data-world="future">
-      <div class="world-icon">🌆</div>
-      <h3>Future City</h3>
-      <p>🔒 50 Coins</p>
-    </div>
-    <div class="world-card" data-world="space">
-      <div class="world-icon">🚀</div>
-      <h3>Space World</h3>
-      <p>🔒 150 Coins</p>
-    </div>
-    <div class="world-card" data-world="dino">
-      <div class="world-icon">🦕</div>
-      <h3>Dinosaur Land</h3>
-      <p>🔒 300 Coins</p>
-    </div>
-    <div class="world-card" data-world="ocean">
-      <div class="world-icon">🌊</div>
-      <h3>Underwater Kingdom</h3>
-      <p>🔒 500 Coins</p>
-    </div>
-    <div class="world-card" data-world="candy">
-      <div class="world-icon">🍭</div>
-      <h3>Candy World</h3>
-      <p>🔒 1000 Coins</p>
-    </div>
-  </div>
-  <button class="back-btn" onclick="Game.showMenu()">← BACK</button>
-</div>
-
-<!-- GAME SCREEN -->
-<div id="gameScreen">
-  <canvas id="gameCanvas"></canvas>
-
-  <!-- HUD -->
+<div id="game">
+  <canvas id="canvas"></canvas>
   <div id="hud">
-    <div class="hud-top">
-      <div class="hud-item">💰 <span id="coins">0</span></div>
-      <div class="hud-item">🍡 <span id="dorayaki">0</span></div>
-      <div class="hud-item">💎 <span id="crystals">0</span></div>
-      <div class="hud-item">❤️ <span id="lives">3</span></div>
-    </div>
-    <div class="hud-world">
-      <span id="worldName">Nobita's House</span> - Level <span id="levelNum">1</span>
-    </div>
+    <div class="hud-box">💰 <span id="coinCount">0</span></div>
+    <div class="hud-box">⭐ <span id="scoreCount">0</span></div>
+    <div class="hud-box">❤️ <span id="lifeCount">3</span></div>
   </div>
-
-  <!-- GADGET WHEEL -->
-  <div id="gadgetWheel">
-    <div class="gadget-slot" data-gadget="door">🚪</div>
-    <div class="gadget-slot" data-gadget="copter">🎋</div>
-    <div class="gadget-slot" data-gadget="light">🔦</div>
-    <div class="gadget-slot" data-gadget="cannon">💨</div>
-  </div>
-
-  <!-- MOBILE CONTROLS -->
   <div id="controls">
     <div class="dpad">
       <button id="leftBtn">⬅️</button>
       <button id="rightBtn">➡️</button>
     </div>
-    <div class="action-btns">
-      <button id="jumpBtn">⬆️</button>
-      <button id="gadgetBtn">🎒</button>
-    </div>
-  </div>
-
-  <!-- PAUSE MENU -->
-  <div id="pauseMenu">
-    <h2>PAUSED</h2>
-    <button onclick="Game.resume()">▶ RESUME</button>
-    <button onclick="Game.restart()">🔄 RESTART</button>
-    <button onclick="Game.quitToMenu()">🏠 MENU</button>
+    <button id="jumpBtn">⬆️</button>
   </div>
 </div>
 
-<!-- DIALOG BOX -->
-<div id="dialog">
-  <div class="dialog-char"></div>
-  <div class="dialog-text"></div>
-  <button class="dialog-next">NEXT ▶</button>
-</div>
+<script>
+// GLOBAL VARS
+let canvas, ctx, gameRunning = false;
+let player, platforms = [], coins = [], particles = [];
+let score = 0, coinCount = 0, lives = 3;
+let keys = {}, camera = {x: 0};
 
-<script src="script.js"></script>
+// INIT
+window.onload = function() {
+  canvas = document.getElementById('canvas');
+  ctx = canvas.getContext('2d');
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+  setupControls();
+};
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+// CONTROLS - MOBILE + DESKTOP
+function setupControls() {
+  // Keyboard
+  document.addEventListener('keydown', e => {
+    keys[e.key] = true;
+    if(['ArrowUp',' ','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+  });
+  document.addEventListener('keyup', e => keys[e.key] = false);
+
+  // Touch - IMPORTANT FIX
+  function addTouch(btn, key) {
+    btn.addEventListener('touchstart', e => {e.preventDefault(); keys[key] = true;}, {passive: false});
+    btn.addEventListener('touchend', e => {e.preventDefault(); keys[key] = false;}, {passive: false});
+    btn.addEventListener('touchcancel', e => {e.preventDefault(); keys[key] = false;}, {passive: false});
+    btn.addEventListener('mousedown', e => {e.preventDefault(); keys[key] = true;});
+    btn.addEventListener('mouseup', e => {e.preventDefault(); keys[key] = false;});
+  }
+  addTouch(document.getElementById('leftBtn'), 'ArrowLeft');
+  addTouch(document.getElementById('rightBtn'), 'ArrowRight');
+  addTouch(document.getElementById('jumpBtn'), ' ');
+}
+
+// START GAME
+function startGame() {
+  document.getElementById('menu').style.display = 'none';
+  document.getElementById('game').style.display = 'block';
+  gameRunning = true;
+  score = 0;
+  coinCount = 0;
+  lives = 3;
+  initLevel();
+  updateHUD();
+  gameLoop();
+}
+
+// INIT LEVEL - SAB KUCH YAHA HAI
+function initLevel() {
+  const groundY = canvas.height - 80;
+  
+  // Player - GROUND PE SPAWN
+  player = {
+    x: 100,
+    y: groundY - 50,
+    w: 50,
+    h: 55,
+    vx: 0,
+    vy: 0,
+    speed: 8,
+    jumpPower: -18,
+    grounded: false
+  };
+
+  // Platforms - VISIBLE
+  platforms = [
+    {x: 0, y: groundY, w: 2000, h: 80}, // Ground
+    {x: 300, y: groundY - 120, w: 180, h: 25},
+    {x: 600, y: groundY - 200, w: 180, h: 25},
+    {x: 900, y: groundY - 120, w: 180, h: 25},
+    {x: 1200, y: groundY - 220, w: 250, h: 25}
+  ];
+
+  // Coins - VISIBLE
+  coins = [
+    {x: 350, y: groundY - 160, r: 15, collected: false},
+    {x: 420, y: groundY - 160, r: 15, collected: false},
+    {x: 650, y: groundY - 240, r: 15, collected: false},
+    {x: 720, y: groundY - 240, r: 15, collected: false},
+    {x: 950, y: groundY - 160, r: 15, collected: false},
+    {x: 1280, y: groundY - 260, r: 18, collected: false}
+  ];
+
+  particles = [];
+  camera.x = 0;
+}
+
+// GAME LOOP
+function gameLoop() {
+  if (!gameRunning) return;
+  
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
+}
+
+// UPDATE PHYSICS
+function update() {
+  // Input
+  const left = keys['ArrowLeft'];
+  const right = keys['ArrowRight'];
+  const jump = keys[' '] || keys['ArrowUp'];
+
+  // Horizontal movement
+  if (left) player.vx = -player.speed;
+  else if (right) player.vx = player.speed;
+  else player.vx *= 0.8;
+
+  // Gravity
+  player.vy += 0.9;
+  player.grounded = false;
+
+  // Jump - ONLY IF GROUNDED
+  if (jump && player.grounded) {
+    player.vy = player.jumpPower;
+    keys[' '] = false;
+    keys['ArrowUp'] = false;
+  }
+
+  // Apply velocity
+  player.x += player.vx;
+  player.y += player.vy;
+
+  // Platform collision - PROPER GROUND DETECTION
+  platforms.forEach(p => {
+    if (player.x + player.w > p.x && 
+        player.x < p.x + p.w && 
+        player.y + player.h > p.y && 
+        player.y + player.h < p.y + p.h + 30) {
+      if (player.vy >= 0) {
+        player.y = p.y - player.h;
+        player.vy = 0;
+        player.grounded = true; // IMPORTANT: SET GROUNDED
+      }
+    }
+  });
+
+  // Coin collection
+  coins.forEach(c => {
+    if (!c.collected) {
+      let dx = (player.x + player.w/2) - c.x;
+      let dy = (player.y + player.h/2) - c.y;
+      let dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < c.r + player.w/2) {
+        c.collected = true;
+        coinCount++;
+        score += 10;
+        // Particles
+        for(let i = 0; i < 10; i++) {
+          particles.push({
+            x: c.x, y: c.y,
+            vx: (Math.random() - 0.5) * 6,
+            vy: (Math.random() - 0.5) * 6,
+            life: 30, color: '#FFD700'
+          });
+        }
+        updateHUD();
+      }
+    }
+  });
+
+  // Update particles
+  particles = particles.filter(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life--;
+    return p.life > 0;
+  });
+
+  // Boundaries
+  if (player.x < 0) player.x = 0;
+  if (player.y > canvas.height + 100) {
+    lives--;
+    if (lives <= 0) {
+      alert('Game Over! Score: ' + score);
+      location.reload();
+    } else {
+      player.x = 100;
+      player.y = canvas.height - 130;
+      player.vy = 0;
+      updateHUD();
+    }
+  }
+
+  // Camera follow
+  camera.x = player.x - canvas.width * 0.3;
+  if (camera.x < 0) camera.x = 0;
+}
+
+// DRAW EVERYTHING
+function draw() {
+  // Clear
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Sky gradient
+  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  grad.addColorStop(0, '#87CEEB');
+  grad.addColorStop(1, '#98D8E8');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Clouds
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  drawCloud(100 - camera.x * 0.3, 100);
+  drawCloud(500 - camera.x * 0.3, 150);
+  drawCloud(900 - camera.x * 0.3, 120);
+  drawCloud(1300 - camera.x * 0.3, 140);
+
+  ctx.save();
+  ctx.translate(-camera.x, 0);
+
+  // Platforms
+  platforms.forEach(p => {
+    // Brown base
+    ctx.fillStyle = '#8B4513';
+    ctx.fillRect(p.x, p.y, p.w, p.h);
+    // Grass top
+    ctx.fillStyle = '#228B22';
+    ctx.fillRect(p.x, p.y, p.w, 10);
+    // Dark line
+    ctx.fillStyle = '#654321';
+    ctx.fillRect(p.x, p.y + p.h - 5, p.w, 5);
+  });
+
+  // Coins
+  coins.forEach(c => {
+    if (!c.collected) {
+      // Outer glow
+      ctx.fillStyle = 'rgba(255,215,0,0.3)';
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.r + 5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Gold coin
+      ctx.fillStyle = '#FFD700';
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Border
+      ctx.strokeStyle = '#FF8C00';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      
+      // Shine
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.beginPath();
+      ctx.arc(c.x - c.r/3, c.y - c.r/3, c.r/3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+
+  // Particles
+  particles.forEach(p => {
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = p.life / 30;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+
+  // Doraemon
+  drawDoraemon(player.x, player.y);
+
+  ctx.restore();
+}
+
+// DRAW DORAEMON
+function drawDoraemon(x, y) {
+  const w = player.w, h = player.h;
+  
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.beginPath();
+  ctx.ellipse(x + w/2, y + h + 5, w/2, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Body
+  ctx.fillStyle = '#00A0E9';
+  ctx.beginPath();
+  ctx.arc(x + w/2, y + h*0.65, w*0.45, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Head
+  ctx.beginPath();
+  ctx.arc(x + w/2, y + h*0.35, w*0.42, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Face
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(x + w/2, y + h*0.4, w*0.33, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Eyes
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(x + w*0.38, y + h*0.28, w*0.11, 0, Math.PI * 2);
+  ctx.arc(x + w*0.62, y + h*0.28, w*0.11, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(x + w*0.38, y + h*0.3, w*0.055, 0, Math.PI * 2);
+  ctx.arc(x + w*0.62, y + h*0.3, w*0.055, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Nose
+  ctx.fillStyle = '#E60012';
+  ctx.beginPath();
+  ctx.arc(x + w/2, y + h*0.38, w*0.08, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Mouth
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.arc(x + w/2, y + h*0.46, w*0.16, 0, Math.PI);
+  ctx.stroke();
+
+  // Whiskers
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x + w*0.2, y + h*0.38); ctx.lineTo(x + w*0.35, y + h*0.4);
+  ctx.moveTo(x + w*0.2, y + h*0.43); ctx.lineTo(x + w*0.35, y + h*0.43);
+  ctx.moveTo(x + w*0.2, y + h*0.48); ctx.lineTo(x + w*0.35, y + h*0.46);
+  ctx.moveTo(x + w*0.8, y + h*0.38); ctx.lineTo(x + w*0.65, y + h*0.4);
+  ctx.moveTo(x + w*0.8, y + h*0.43); ctx.lineTo(x + w*0.65, y + h*0.43);
+  ctx.moveTo(x + w*0.8, y + h*0.48); ctx.lineTo(x + w*0.65, y + h*0.46);
+  ctx.stroke();
+
+  // Bell
+  ctx.fillStyle = '#FFD700';
+  ctx.beginPath();
+  ctx.arc(x + w/2, y + h*0.68, w*0.09, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#FFA500';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  
+  // Bell detail
+  ctx.fillStyle = '#FFA500';
+  ctx.beginPath();
+  ctx.arc(x + w/2, y + h*0.68, w*0.03, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// DRAW CLOUD
+function drawCloud(x, y) {
+  ctx.beginPath();
+  ctx.arc(x, y, 30, 0, Math.PI * 2);
+  ctx.arc(x + 40, y, 45, 0, Math.PI * 2);
+  ctx.arc(x + 80, y, 30, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// UPDATE HUD
+function updateHUD() {
+  document.getElementById('coinCount').textContent = coinCount;
+  document.getElementById('scoreCount').textContent = score;
+  document.getElementById('lifeCount').textContent = '❤️'.repeat(Math.max(0, lives));
+}
+</script>
+
 </body>
 </html>
