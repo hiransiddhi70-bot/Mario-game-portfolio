@@ -1,49 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Doraemon Adventure Game</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#00A0E9">
+<title>Doraemon Adventure World</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="startMenu">
-    <h1>DORAEMON<br>ADVENTURE<br>GAME</h1>
-    <p class="tagline">Explore. Collect. Play. Have Fun!</p>
-    <button id="playBtn">▶ PLAY</button>
-    <div class="menuBtns">
-      <button class="subBtn">🗺️ ADVENTURES</button>
-      <button class="subBtn">🎒 GADGETS</button>
-      <button class="subBtn">🏆 ACHIEVEMENTS</button>
+
+<!-- LOADING SCREEN -->
+<div id="loading">
+  <div class="doraemon-loader"></div>
+  <h2>LOADING DORAEMON WORLD...</h2>
+  <div class="loading-bar"><div class="loading-fill"></div></div>
+</div>
+
+<!-- MAIN MENU -->
+<div id="mainMenu">
+  <div class="menu-bg"></div>
+  <h1>DORAEMON<br>ADVENTURE<br>WORLD</h1>
+  <p class="subtitle">Explore 6 Worlds • Collect Gadgets • Save Friends</p>
+
+  <div class="menu-stats">
+    <div>💰 <span id="totalCoins">0</span></div>
+    <div>🍡 <span id="totalDorayaki">0</span></div>
+    <div>💎 <span id="totalCrystals">0</span></div>
+  </div>
+
+  <button class="menu-btn" onclick="Game.startGame()">▶ START ADVENTURE</button>
+  <button class="menu-btn" onclick="Game.showWorlds()">🗺️ SELECT WORLD</button>
+  <button class="menu-btn" onclick="Game.showGadgets()">🎒 GADGETS</button>
+  <button class="menu-btn" onclick="Game.showAchievements()">🏆 ACHIEVEMENTS</button>
+</div>
+
+<!-- WORLD SELECT -->
+<div id="worldSelect">
+  <h2>SELECT WORLD</h2>
+  <div class="worlds-grid">
+    <div class="world-card unlocked" data-world="nobita">
+      <div class="world-icon">🏠</div>
+      <h3>Nobita's House</h3>
+      <p>Tutorial World</p>
+    </div>
+    <div class="world-card" data-world="future">
+      <div class="world-icon">🌆</div>
+      <h3>Future City</h3>
+      <p>🔒 50 Coins</p>
+    </div>
+    <div class="world-card" data-world="space">
+      <div class="world-icon">🚀</div>
+      <h3>Space World</h3>
+      <p>🔒 150 Coins</p>
+    </div>
+    <div class="world-card" data-world="dino">
+      <div class="world-icon">🦕</div>
+      <h3>Dinosaur Land</h3>
+      <p>🔒 300 Coins</p>
+    </div>
+    <div class="world-card" data-world="ocean">
+      <div class="world-icon">🌊</div>
+      <h3>Underwater Kingdom</h3>
+      <p>🔒 500 Coins</p>
+    </div>
+    <div class="world-card" data-world="candy">
+      <div class="world-icon">🍭</div>
+      <h3>Candy World</h3>
+      <p>🔒 1000 Coins</p>
+    </div>
+  </div>
+  <button class="back-btn" onclick="Game.showMenu()">← BACK</button>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="gameScreen">
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-top">
+      <div class="hud-item">💰 <span id="coins">0</span></div>
+      <div class="hud-item">🍡 <span id="dorayaki">0</span></div>
+      <div class="hud-item">💎 <span id="crystals">0</span></div>
+      <div class="hud-item">❤️ <span id="lives">3</span></div>
+    </div>
+    <div class="hud-world">
+      <span id="worldName">Nobita's House</span> - Level <span id="levelNum">1</span>
     </div>
   </div>
 
-  <div id="gameContainer">
-    <canvas id="gameCanvas"></canvas>
-    
-    <div id="hud">
-      <div class="hudLeft">
-        <div id="coins">💰 0</div>
-      </div>
-      <div class="hudRight">
-        <div id="stars">⭐ 0</div>
-        <div id="lives">❤️❤️❤️</div>
-      </div>
-    </div>
+  <!-- GADGET WHEEL -->
+  <div id="gadgetWheel">
+    <div class="gadget-slot" data-gadget="door">🚪</div>
+    <div class="gadget-slot" data-gadget="copter">🎋</div>
+    <div class="gadget-slot" data-gadget="light">🔦</div>
+    <div class="gadget-slot" data-gadget="cannon">💨</div>
+  </div>
 
-    <div id="mobileControls">
+  <!-- MOBILE CONTROLS -->
+  <div id="controls">
+    <div class="dpad">
       <button id="leftBtn">⬅️</button>
-      <button id="jumpBtn">⬆️</button>
       <button id="rightBtn">➡️</button>
     </div>
-
-    <div id="gameOver">
-      <h2>GAME OVER</h2>
-      <p id="finalScore">Score: 0</p>
-      <button id="restartBtn">🔄 PLAY AGAIN</button>
+    <div class="action-btns">
+      <button id="jumpBtn">⬆️</button>
+      <button id="gadgetBtn">🎒</button>
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <!-- PAUSE MENU -->
+  <div id="pauseMenu">
+    <h2>PAUSED</h2>
+    <button onclick="Game.resume()">▶ RESUME</button>
+    <button onclick="Game.restart()">🔄 RESTART</button>
+    <button onclick="Game.quitToMenu()">🏠 MENU</button>
+  </div>
+</div>
+
+<!-- DIALOG BOX -->
+<div id="dialog">
+  <div class="dialog-char"></div>
+  <div class="dialog-text"></div>
+  <button class="dialog-next">NEXT ▶</button>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
