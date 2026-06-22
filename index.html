@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- START MENU - ALTA POSTER JAISE -->
   <div id="startMenu">
     <h1>DORAEMON<br>ADVENTURE<br>GAME</h1>
     <p class="tagline">Explore. Collect. Play. Have Fun!</p>
@@ -19,26 +18,29 @@
     </div>
   </div>
 
-  <!-- GAME -->
   <div id="gameContainer" style="display:none;">
-    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <canvas id="gameCanvas"></canvas>
     
-    <!-- TOP HUD - ALTA wali image jaisa -->
     <div id="hud">
       <div class="hudLeft">
-        <div id="coins">💰 78</div>
+        <div id="coins">💰 0</div>
       </div>
       <div class="hudRight">
-        <div id="stars">⭐ 1250</div>
-        <div id="settings">⚙️</div>
+        <div id="stars">⭐ 0</div>
+        <div id="lives">❤️❤️❤️</div>
       </div>
     </div>
 
-    <!-- MOBILE CONTROLS -->
     <div id="mobileControls">
       <button id="leftBtn">⬅️</button>
       <button id="jumpBtn">⬆️</button>
       <button id="rightBtn">➡️</button>
+    </div>
+
+    <div id="gameOver" style="display:none;">
+      <h2>GAME OVER</h2>
+      <p id="finalScore">Score: 0</p>
+      <button id="restartBtn">🔄 PLAY AGAIN</button>
     </div>
   </div>
 
