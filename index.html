@@ -3,39 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Doraemon Game - WORKING</title>
+<title>DORAEMON - FINAL FIX</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;touch-action:none;font-family:Arial,sans-serif}
 body{background:#000;overflow:hidden;position:fixed;width:100%;height:100%}
-#menu{position:fixed;inset:0;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100}
-#menu h1{font-size:3rem;color:#FFD700;text-shadow:4px 4px 0 #FF6B6B;margin-bottom:30px;text-align:center}
-#menu button{padding:20px 60px;font-size:1.8rem;background:linear-gradient(45deg,#FF6B6B,#FFE66D);color:#fff;border:5px solid #fff;border-radius:50px;cursor:pointer;box-shadow:0 8px 0 #C44D58}
-#menu button:active{transform:translateY(4px);box-shadow:0 4px 0 #C44D58}
+#menu{position:fixed;inset:0;background:linear-gradient(135deg,#00A0E9,#92FE9D);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100}
+#menu h1{font-size:3.5rem;color:#FFD700;text-shadow:5px 5px 0 #FF6B6B;margin-bottom:30px;text-align:center;line-height:1.1}
+#menu button{padding:25px 70px;font-size:2rem;background:#FF6B6B;color:#fff;border:6px solid #fff;border-radius:60px;cursor:pointer;box-shadow:0 10px 0 #C44D58;font-weight:bold}
+#menu button:active{transform:translateY(5px);box-shadow:0 5px 0 #C44D58}
 #game{display:none;position:fixed;inset:0}
-#canvas{display:block;width:100%;height:100%;background:linear-gradient(to bottom,#87CEEB 0%,#B0E0E6 65%,#6BBE44 65%,#5AA83F 100%)}
-#hud{position:absolute;top:15px;left:0;right:0;display:flex;justify-content:center;gap:10px;padding:0 15px;pointer-events:none;z-index:10}
-.hud-box{background:rgba(0,0,0,0.8);color:#fff;padding:10px 15px;border-radius:25px;font-size:18px;font-weight:bold;border:3px solid rgba(255,255,255,0.5)}
-#controls{position:absolute;bottom:20px;left:0;right:0;display:flex;justify-content:space-between;padding:0 25px;z-index:10}
-#controls button{width:80px;height:80px;font-size:35px;border-radius:50%;border:5px solid #fff;background:rgba(255,255,255,0.4);cursor:pointer;box-shadow:0 5px 20px rgba(0,0,0,0.3)}
-#controls button:active{background:rgba(255,255,255,0.9);transform:scale(0.9)}
-.dpad{display:flex;gap:20px}
+#canvas{display:block;width:100%;height:100%;background:linear-gradient(to bottom,#87CEEB 0%,#B0E0E6 70%,#6BBE44 70%,#5AA83F 100%)}
+#hud{position:absolute;top:20px;left:0;right:0;display:flex;justify-content:center;gap:15px;pointer-events:none;z-index:10}
+.hud-box{background:rgba(0,0,0,0.85);color:#fff;padding:12px 20px;border-radius:30px;font-size:22px;font-weight:bold;border:4px solid #FFD700}
+#controls{position:absolute;bottom:25px;left:0;right:0;display:flex;justify-content:space-between;padding:0 30px;z-index:10}
+#controls button{width:90px;height:90px;font-size:40px;border-radius:50%;border:6px solid #fff;background:rgba(255,255,255,0.5);cursor:pointer;box-shadow:0 6px 25px rgba(0,0,0,0.4);font-weight:bold}
+#controls button:active{background:rgba(255,215,0,0.9);transform:scale(0.85)}
+.dpad{display:flex;gap:25px}
+#debug{position:absolute;top:80px;left:10px;background:rgba(0,0,0,0.7);color:#0f0;padding:10px;border-radius:10px;font-size:12px;font-family:monospace;z-index:10}
 </style>
 </head>
 <body>
 
 <div id="menu">
-  <h1>DORAEMON<br>ADVENTURE</h1>
-  <button onclick="startGame()">▶ PLAY NOW</button>
-  <p style="color:#fff;margin-top:20px;font-size:14px">Tap PLAY to start</p>
+  <h1>DORAEMON<br>GAME</h1>
+  <button onclick="startGame()">▶ START</button>
+  <p style="color:#fff;margin-top:25px;font-size:16px">Fixed Version - Jump Works!</p>
 </div>
 
 <div id="game">
   <canvas id="canvas"></canvas>
   <div id="hud">
-    <div class="hud-box">💰 <span id="coinCount">0</span></div>
-    <div class="hud-box">⭐ <span id="scoreCount">0</span></div>
-    <div class="hud-box">❤️ <span id="lifeCount">3</span></div>
+    <div class="hud-box">💰 <span id="coins">0</span></div>
+    <div class="hud-box">⭐ <span id="score">0</span></div>
+    <div class="hud-box">❤️ <span id="lives">3</span></div>
   </div>
+  <div id="debug">DEBUG: Ready</div>
   <div id="controls">
     <div class="dpad">
       <button id="leftBtn">⬅️</button>
@@ -46,248 +48,276 @@ body{background:#000;overflow:hidden;position:fixed;width:100%;height:100%}
 </div>
 
 <script>
-// GLOBAL VARS
-let canvas, ctx, gameRunning = false;
-let player, platforms = [], coins = [], particles = [];
+// GLOBAL
+let canvas, ctx, running = false;
+let player, platforms = [], coins = [], enemies = [];
 let score = 0, coinCount = 0, lives = 3;
-let keys = {}, camera = {x: 0};
+let keys = {};
+let debugEl;
 
 // INIT
 window.onload = function() {
   canvas = document.getElementById('canvas');
   ctx = canvas.getContext('2d');
-  resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
-  setupControls();
+  debugEl = document.getElementById('debug');
+  resize();
+  window.addEventListener('resize', resize);
+  setupButtons();
+  log('Game Loaded - Tap START');
 };
 
-function resizeCanvas() {
+function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 }
 
-// CONTROLS - MOBILE + DESKTOP
-function setupControls() {
+function log(msg) {
+  debugEl.textContent = 'DEBUG: ' + msg;
+  console.log(msg);
+}
+
+// CONTROLS - FIXED FOR MOBILE
+function setupButtons() {
+  function bind(btn, key) {
+    btn.addEventListener('touchstart', e => {e.preventDefault(); keys[key] = true; log('Touch: ' + key);}, {passive:false});
+    btn.addEventListener('touchend', e => {e.preventDefault(); keys[key] = false;}, {passive:false});
+    btn.addEventListener('mousedown', e => {e.preventDefault(); keys[key] = true; log('Click: ' + key);});
+    btn.addEventListener('mouseup', e => {e.preventDefault(); keys[key] = false;});
+    btn.addEventListener('mouseleave', e => {keys[key] = false;});
+  }
+  bind(document.getElementById('leftBtn'), 'ArrowLeft');
+  bind(document.getElementById('rightBtn'), 'ArrowRight');
+  bind(document.getElementById('jumpBtn'), 'Space');
+
   // Keyboard
   document.addEventListener('keydown', e => {
     keys[e.key] = true;
+    if(e.key === ' ') keys['Space'] = true;
     if(['ArrowUp',' ','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
   });
-  document.addEventListener('keyup', e => keys[e.key] = false);
-
-  // Touch - IMPORTANT FIX
-  function addTouch(btn, key) {
-    btn.addEventListener('touchstart', e => {e.preventDefault(); keys[key] = true;}, {passive: false});
-    btn.addEventListener('touchend', e => {e.preventDefault(); keys[key] = false;}, {passive: false});
-    btn.addEventListener('touchcancel', e => {e.preventDefault(); keys[key] = false;}, {passive: false});
-    btn.addEventListener('mousedown', e => {e.preventDefault(); keys[key] = true;});
-    btn.addEventListener('mouseup', e => {e.preventDefault(); keys[key] = false;});
-  }
-  addTouch(document.getElementById('leftBtn'), 'ArrowLeft');
-  addTouch(document.getElementById('rightBtn'), 'ArrowRight');
-  addTouch(document.getElementById('jumpBtn'), ' ');
+  document.addEventListener('keyup', e => {
+    keys[e.key] = false;
+    if(e.key === ' ') keys['Space'] = false;
+  });
 }
 
-// START GAME
+// START
 function startGame() {
   document.getElementById('menu').style.display = 'none';
   document.getElementById('game').style.display = 'block';
-  gameRunning = true;
+  running = true;
   score = 0;
   coinCount = 0;
   lives = 3;
   initLevel();
   updateHUD();
+  log('Game Started!');
   gameLoop();
 }
 
-// INIT LEVEL - SAB KUCH YAHA HAI
+// INIT LEVEL - EVERYTHING VISIBLE
 function initLevel() {
-  const groundY = canvas.height - 80;
+  const groundY = canvas.height - 100;
   
-  // Player - GROUND PE SPAWN
+  // Player - SPAWN ON GROUND
   player = {
     x: 100,
-    y: groundY - 50,
-    w: 50,
-    h: 55,
+    y: groundY - 60,
+    w: 55,
+    h: 60,
     vx: 0,
     vy: 0,
     speed: 8,
-    jumpPower: -18,
+    jumpPower: -20,
     grounded: false
   };
 
-  // Platforms - VISIBLE
+  // Platforms - BIG AND VISIBLE
   platforms = [
-    {x: 0, y: groundY, w: 2000, h: 80}, // Ground
-    {x: 300, y: groundY - 120, w: 180, h: 25},
-    {x: 600, y: groundY - 200, w: 180, h: 25},
-    {x: 900, y: groundY - 120, w: 180, h: 25},
-    {x: 1200, y: groundY - 220, w: 250, h: 25}
+    {x: 0, y: groundY, w: canvas.width * 3, h: 100}, // Ground
+    {x: 250, y: groundY - 130, w: 200, h: 30},
+    {x: 550, y: groundY - 220, w: 200, h: 30},
+    {x: 850, y: groundY - 130, w: 200, h: 30},
+    {x: 1150, y: groundY - 250, w: 300, h: 30}
   ];
 
-  // Coins - VISIBLE
+  // Coins - RIGHT IN FRONT
   coins = [
-    {x: 350, y: groundY - 160, r: 15, collected: false},
-    {x: 420, y: groundY - 160, r: 15, collected: false},
-    {x: 650, y: groundY - 240, r: 15, collected: false},
-    {x: 720, y: groundY - 240, r: 15, collected: false},
-    {x: 950, y: groundY - 160, r: 15, collected: false},
-    {x: 1280, y: groundY - 260, r: 18, collected: false}
+    {x: 300, y: groundY - 170, r: 18, got: false},
+    {x: 380, y: groundY - 170, r: 18, got: false},
+    {x: 600, y: groundY - 260, r: 18, got: false},
+    {x: 680, y: groundY - 260, r: 18, got: false},
+    {x: 900, y: groundY - 170, r: 18, got: false},
+    {x: 1220, y: groundY - 290, r: 22, got: false}
   ];
 
-  particles = [];
-  camera.x = 0;
+  // Enemy - VISIBLE
+  enemies = [
+    {x: 700, y: groundY - 35, w: 35, h: 35, vx: 3, dir: 1, minX: 600, maxX: 900}
+  ];
+
+  log('Level loaded: ' + platforms.length + ' platforms, ' + coins.length + ' coins');
 }
 
 // GAME LOOP
 function gameLoop() {
-  if (!gameRunning) return;
-  
+  if (!running) return;
   update();
   draw();
   requestAnimationFrame(gameLoop);
 }
 
-// UPDATE PHYSICS
+// UPDATE
 function update() {
-  // Input
   const left = keys['ArrowLeft'];
   const right = keys['ArrowRight'];
-  const jump = keys[' '] || keys['ArrowUp'];
+  const jump = keys['Space'] || keys['ArrowUp'];
 
-  // Horizontal movement
-  if (left) player.vx = -player.speed;
-  else if (right) player.vx = player.speed;
-  else player.vx *= 0.8;
-
-  // Gravity
-  player.vy += 0.9;
-  player.grounded = false;
-
-  // Jump - ONLY IF GROUNDED
-  if (jump && player.grounded) {
-    player.vy = player.jumpPower;
-    keys[' '] = false;
-    keys['ArrowUp'] = false;
+  // Movement
+  if (left) {
+    player.vx = -player.speed;
+  } else if (right) {
+    player.vx = player.speed;
+  } else {
+    player.vx *= 0.8;
   }
 
-  // Apply velocity
+  // Gravity
+  player.vy += 1.0;
+  player.grounded = false;
+
+  // JUMP - CHECK GROUNDED
+  if (jump && player.grounded) {
+    player.vy = player.jumpPower;
+    keys['Space'] = false;
+    keys['ArrowUp'] = false;
+    log('JUMP! vy=' + player.vy);
+  }
+
+  // Apply
   player.x += player.vx;
   player.y += player.vy;
 
-  // Platform collision - PROPER GROUND DETECTION
+  // Platform collision - FIXED
   platforms.forEach(p => {
+    // Check if player is above platform
     if (player.x + player.w > p.x && 
-        player.x < p.x + p.w && 
-        player.y + player.h > p.y && 
-        player.y + player.h < p.y + p.h + 30) {
-      if (player.vy >= 0) {
+        player.x < p.x + p.w) {
+      // Landing on top
+      if (player.y + player.h > p.y && 
+          player.y + player.h < p.y + p.h + 30 &&
+          player.vy >= 0) {
         player.y = p.y - player.h;
         player.vy = 0;
-        player.grounded = true; // IMPORTANT: SET GROUNDED
+        player.grounded = true; // CRITICAL FIX
       }
     }
   });
 
-  // Coin collection
+  // Coins
   coins.forEach(c => {
-    if (!c.collected) {
+    if (!c.got) {
       let dx = (player.x + player.w/2) - c.x;
       let dy = (player.y + player.h/2) - c.y;
       let dist = Math.sqrt(dx*dx + dy*dy);
       if (dist < c.r + player.w/2) {
-        c.collected = true;
+        c.got = true;
         coinCount++;
         score += 10;
-        // Particles
-        for(let i = 0; i < 10; i++) {
-          particles.push({
-            x: c.x, y: c.y,
-            vx: (Math.random() - 0.5) * 6,
-            vy: (Math.random() - 0.5) * 6,
-            life: 30, color: '#FFD700'
-          });
-        }
+        log('Coin! Total: ' + coinCount);
         updateHUD();
       }
     }
   });
 
-  // Update particles
-  particles = particles.filter(p => {
-    p.x += p.vx;
-    p.y += p.vy;
-    p.life--;
-    return p.life > 0;
+  // Enemies
+  enemies.forEach(e => {
+    e.x += e.vx * e.dir;
+    if (e.x <= e.minX || e.x >= e.maxX) e.dir *= -1;
+    
+    // Collision
+    if (player.x < e.x + e.w && player.x + player.w > e.x &&
+        player.y < e.y + e.h && player.y + player.h > e.y) {
+      if (player.vy > 0 && player.y < e.y) {
+        // Jump on enemy
+        e.x = -1000; // Remove
+        player.vy = -15;
+        score += 50;
+        log('Enemy defeated!');
+        updateHUD();
+      } else {
+        // Hit by enemy
+        lives--;
+        player.x = 100;
+        player.y = canvas.height - 160;
+        player.vy = 0;
+        log('Hit! Lives: ' + lives);
+        updateHUD();
+        if (lives <= 0) {
+          alert('Game Over! Score: ' + score);
+          location.reload();
+        }
+      }
+    }
   });
 
-  // Boundaries
+  // Bounds
   if (player.x < 0) player.x = 0;
-  if (player.y > canvas.height + 100) {
+  if (player.y > canvas.height + 200) {
     lives--;
+    player.x = 100;
+    player.y = canvas.height - 160;
+    player.vy = 0;
+    log('Fell! Lives: ' + lives);
+    updateHUD();
     if (lives <= 0) {
       alert('Game Over! Score: ' + score);
       location.reload();
-    } else {
-      player.x = 100;
-      player.y = canvas.height - 130;
-      player.vy = 0;
-      updateHUD();
     }
   }
 
-  // Camera follow
-  camera.x = player.x - canvas.width * 0.3;
-  if (camera.x < 0) camera.x = 0;
+  // Debug info
+  log(`Grounded:${player.grounded} Y:${Math.floor(player.y)} vy:${player.vy.toFixed(1)}`);
 }
 
-// DRAW EVERYTHING
+// DRAW
 function draw() {
-  // Clear
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Sky gradient
+  // Sky
   const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
   grad.addColorStop(0, '#87CEEB');
-  grad.addColorStop(1, '#98D8E8');
+  grad.addColorStop(1, '#E0F6FF');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // Clouds
   ctx.fillStyle = 'rgba(255,255,255,0.9)';
-  drawCloud(100 - camera.x * 0.3, 100);
-  drawCloud(500 - camera.x * 0.3, 150);
-  drawCloud(900 - camera.x * 0.3, 120);
-  drawCloud(1300 - camera.x * 0.3, 140);
-
-  ctx.save();
-  ctx.translate(-camera.x, 0);
+  drawCloud(100, 100);
+  drawCloud(400, 150);
+  drawCloud(700, 120);
 
   // Platforms
   platforms.forEach(p => {
     // Brown base
     ctx.fillStyle = '#8B4513';
     ctx.fillRect(p.x, p.y, p.w, p.h);
-    // Grass top
+    // Green grass
     ctx.fillStyle = '#228B22';
-    ctx.fillRect(p.x, p.y, p.w, 10);
-    // Dark line
-    ctx.fillStyle = '#654321';
-    ctx.fillRect(p.x, p.y + p.h - 5, p.w, 5);
+    ctx.fillRect(p.x, p.y, p.w, 12);
+    // Highlight
+    ctx.fillStyle = '#32CD32';
+    ctx.fillRect(p.x, p.y, p.w, 4);
   });
 
   // Coins
   coins.forEach(c => {
-    if (!c.collected) {
-      // Outer glow
-      ctx.fillStyle = 'rgba(255,215,0,0.3)';
+    if (!c.got) {
+      // Glow
+      ctx.fillStyle = 'rgba(255,215,0,0.4)';
       ctx.beginPath();
-      ctx.arc(c.x, c.y, c.r + 5, 0, Math.PI * 2);
+      ctx.arc(c.x, c.y, c.r + 8, 0, Math.PI * 2);
       ctx.fill();
       
-      // Gold coin
+      // Gold
       ctx.fillStyle = '#FFD700';
       ctx.beginPath();
       ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
@@ -295,31 +325,42 @@ function draw() {
       
       // Border
       ctx.strokeStyle = '#FF8C00';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 4;
       ctx.stroke();
       
       // Shine
-      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
       ctx.beginPath();
       ctx.arc(c.x - c.r/3, c.y - c.r/3, c.r/3, 0, Math.PI * 2);
       ctx.fill();
     }
   });
 
-  // Particles
-  particles.forEach(p => {
-    ctx.fillStyle = p.color;
-    ctx.globalAlpha = p.life / 30;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = 1;
+  // Enemies
+  enemies.forEach(e => {
+    if (e.x > -100) {
+      // Body
+      ctx.fillStyle = '#808080';
+      ctx.beginPath();
+      ctx.arc(e.x + e.w/2, e.y + e.h/2, e.w/2, 0, Math.PI * 2);
+      ctx.fill();
+      // Ears
+      ctx.fillStyle = '#696969';
+      ctx.beginPath();
+      ctx.arc(e.x + 8, e.y + 8, 8, 0, Math.PI * 2);
+      ctx.arc(e.x + e.w - 8, e.y + 8, 8, 0, Math.PI * 2);
+      ctx.fill();
+      // Eyes
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(e.x + 12, e.y + 15, 3, 0, Math.PI * 2);
+      ctx.arc(e.x + e.w - 12, e.y + 15, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
   });
 
   // Doraemon
   drawDoraemon(player.x, player.y);
-
-  ctx.restore();
 }
 
 // DRAW DORAEMON
@@ -327,95 +368,101 @@ function drawDoraemon(x, y) {
   const w = player.w, h = player.h;
   
   // Shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
   ctx.beginPath();
-  ctx.ellipse(x + w/2, y + h + 5, w/2, 8, 0, 0, Math.PI * 2);
+  ctx.ellipse(x + w/2, y + h + 8, w/2, 10, 0, 0, Math.PI * 2);
   ctx.fill();
 
   // Body
   ctx.fillStyle = '#00A0E9';
   ctx.beginPath();
-  ctx.arc(x + w/2, y + h*0.65, w*0.45, 0, Math.PI * 2);
+  ctx.arc(x + w/2, y + h*0.65, w*0.48, 0, Math.PI * 2);
   ctx.fill();
 
   // Head
   ctx.beginPath();
-  ctx.arc(x + w/2, y + h*0.35, w*0.42, 0, Math.PI * 2);
+  ctx.arc(x + w/2, y + h*0.35, w*0.45, 0, Math.PI * 2);
   ctx.fill();
 
   // Face
   ctx.fillStyle = '#fff';
   ctx.beginPath();
-  ctx.arc(x + w/2, y + h*0.4, w*0.33, 0, Math.PI * 2);
+  ctx.arc(x + w/2, y + h*0.4, w*0.35, 0, Math.PI * 2);
   ctx.fill();
 
   // Eyes
   ctx.fillStyle = '#fff';
   ctx.beginPath();
-  ctx.arc(x + w*0.38, y + h*0.28, w*0.11, 0, Math.PI * 2);
-  ctx.arc(x + w*0.62, y + h*0.28, w*0.11, 0, Math.PI * 2);
+  ctx.arc(x + w*0.37, y + h*0.27, w*0.12, 0, Math.PI * 2);
+  ctx.arc(x + w*0.63, y + h*0.27, w*0.12, 0, Math.PI * 2);
   ctx.fill();
   
   ctx.fillStyle = '#000';
   ctx.beginPath();
-  ctx.arc(x + w*0.38, y + h*0.3, w*0.055, 0, Math.PI * 2);
-  ctx.arc(x + w*0.62, y + h*0.3, w*0.055, 0, Math.PI * 2);
+  ctx.arc(x + w*0.37, y + h*0.29, w*0.06, 0, Math.PI * 2);
+  ctx.arc(x + w*0.63, y + h*0.29, w*0.06, 0, Math.PI * 2);
   ctx.fill();
 
   // Nose
   ctx.fillStyle = '#E60012';
   ctx.beginPath();
-  ctx.arc(x + w/2, y + h*0.38, w*0.08, 0, Math.PI * 2);
+  ctx.arc(x + w/2, y + h*0.38, w*0.09, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Nose shine
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.beginPath();
+  ctx.arc(x + w/2 - w*0.02, y + h*0.36, w*0.03, 0, Math.PI * 2);
   ctx.fill();
 
   // Mouth
   ctx.strokeStyle = '#000';
-  ctx.lineWidth = 2.5;
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.arc(x + w/2, y + h*0.46, w*0.16, 0, Math.PI);
+  ctx.arc(x + w/2, y + h*0.47, w*0.18, 0, Math.PI);
   ctx.stroke();
 
   // Whiskers
-  ctx.lineWidth = 1.5;
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(x + w*0.2, y + h*0.38); ctx.lineTo(x + w*0.35, y + h*0.4);
-  ctx.moveTo(x + w*0.2, y + h*0.43); ctx.lineTo(x + w*0.35, y + h*0.43);
-  ctx.moveTo(x + w*0.2, y + h*0.48); ctx.lineTo(x + w*0.35, y + h*0.46);
-  ctx.moveTo(x + w*0.8, y + h*0.38); ctx.lineTo(x + w*0.65, y + h*0.4);
-  ctx.moveTo(x + w*0.8, y + h*0.43); ctx.lineTo(x + w*0.65, y + h*0.43);
-  ctx.moveTo(x + w*0.8, y + h*0.48); ctx.lineTo(x + w*0.65, y + h*0.46);
+  ctx.moveTo(x + w*0.15, y + h*0.38); ctx.lineTo(x + w*0.32, y + h*0.4);
+  ctx.moveTo(x + w*0.15, y + h*0.44); ctx.lineTo(x + w*0.32, y + h*0.44);
+  ctx.moveTo(x + w*0.15, y + h*0.5); ctx.lineTo(x + w*0.32, y + h*0.48);
+  ctx.moveTo(x + w*0.85, y + h*0.38); ctx.lineTo(x + w*0.68, y + h*0.4);
+  ctx.moveTo(x + w*0.85, y + h*0.44); ctx.lineTo(x + w*0.68, y + h*0.44);
+  ctx.moveTo(x + w*0.85, y + h*0.5); ctx.lineTo(x + w*0.68, y + h*0.48);
   ctx.stroke();
 
   // Bell
   ctx.fillStyle = '#FFD700';
   ctx.beginPath();
-  ctx.arc(x + w/2, y + h*0.68, w*0.09, 0, Math.PI * 2);
+  ctx.arc(x + w/2, y + h*0.68, w*0.1, 0, Math.PI * 2);
   ctx.fill();
   ctx.strokeStyle = '#FFA500';
   ctx.lineWidth = 2;
   ctx.stroke();
   
-  // Bell detail
+  // Bell hole
   ctx.fillStyle = '#FFA500';
   ctx.beginPath();
-  ctx.arc(x + w/2, y + h*0.68, w*0.03, 0, Math.PI * 2);
+  ctx.arc(x + w/2, y + h*0.68, w*0.035, 0, Math.PI * 2);
   ctx.fill();
 }
 
-// DRAW CLOUD
+// CLOUD
 function drawCloud(x, y) {
   ctx.beginPath();
-  ctx.arc(x, y, 30, 0, Math.PI * 2);
-  ctx.arc(x + 40, y, 45, 0, Math.PI * 2);
-  ctx.arc(x + 80, y, 30, 0, Math.PI * 2);
+  ctx.arc(x, y, 35, 0, Math.PI * 2);
+  ctx.arc(x + 45, y, 50, 0, Math.PI * 2);
+  ctx.arc(x + 90, y, 35, 0, Math.PI * 2);
   ctx.fill();
 }
 
-// UPDATE HUD
+// HUD
 function updateHUD() {
-  document.getElementById('coinCount').textContent = coinCount;
-  document.getElementById('scoreCount').textContent = score;
-  document.getElementById('lifeCount').textContent = '❤️'.repeat(Math.max(0, lives));
+  document.getElementById('coins').textContent = coinCount;
+  document.getElementById('score').textContent = score;
+  document.getElementById('lives').textContent = '❤️'.repeat(Math.max(0, lives));
 }
 </script>
 
