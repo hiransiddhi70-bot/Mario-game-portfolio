@@ -7,23 +7,15 @@ const urlsToCache = [
 
 "/index.html",
 
-"/css/style.css",
-
-"/js/main.js",
-
-"/js/world.js",
-
-"/js/inventory.js",
-
-"/js/enemies.js",
-
-"/js/save.js",
-
-"/js/audio.js",
-
-"/js/weather.js",
-
-"/js/achievements.js"
+"/style.css",
+"/main.js",
+"/world.js",
+"/inventory.js",
+"/enemies.js",
+"/save.js",
+"/audio.js",
+"/weather.js",
+"/achievements.js",
 
 ];
 
