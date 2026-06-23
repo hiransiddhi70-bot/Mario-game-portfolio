@@ -1,0 +1,439 @@
+/* =========================
+   GLOBAL
+========================= */
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+-webkit-tap-highlight-color:transparent;
+}
+
+html,
+body{
+width:100%;
+height:100%;
+overflow:hidden;
+font-family:Arial,sans-serif;
+background:#000;
+color:#fff;
+}
+
+.hidden{
+display:none !important;
+}
+
+/* =========================
+   LOADING SCREEN
+========================= */
+
+#loadingScreen{
+position:fixed;
+inset:0;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+background:#08121f;
+z-index:999;
+}
+
+#loadingScreen h1{
+font-size:2rem;
+margin-bottom:30px;
+text-align:center;
+}
+
+#loadingBarContainer{
+width:80%;
+height:20px;
+border:2px solid #fff;
+border-radius:20px;
+overflow:hidden;
+margin-bottom:20px;
+}
+
+#loadingBar{
+width:0%;
+height:100%;
+background:#4caf50;
+transition:width .3s;
+}
+
+/* =========================
+   SCREENS
+========================= */
+
+.screen{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.92);
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+z-index:200;
+padding:20px;
+}
+
+.logo{
+font-size:2.2rem;
+text-align:center;
+margin-bottom:40px;
+}
+
+.screen button{
+width:240px;
+padding:16px;
+margin:8px;
+font-size:18px;
+border:none;
+border-radius:12px;
+background:#2196f3;
+color:white;
+}
+
+/* =========================
+   CHARACTER SELECT
+========================= */
+
+.characterGrid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:12px;
+width:100%;
+max-width:700px;
+margin:20px 0;
+}
+
+.characterCard{
+background:#1e1e1e;
+border:2px solid #444;
+border-radius:15px;
+padding:20px;
+text-align:center;
+}
+
+.characterCard h3{
+margin-bottom:8px;
+}
+
+.characterCard:hover{
+border-color:#2196f3;
+}
+
+/* =========================
+   ACHIEVEMENTS
+========================= */
+
+#achievementList{
+width:100%;
+max-width:500px;
+margin:20px 0;
+}
+
+.achievement{
+background:#222;
+padding:15px;
+margin:10px 0;
+border-radius:10px;
+border-left:5px solid gold;
+}
+
+/* =========================
+   SETTINGS
+========================= */
+
+#settingsScreen label{
+margin:15px 0;
+font-size:20px;
+display:flex;
+gap:15px;
+align-items:center;
+}
+
+/* =========================
+   GAME CANVAS
+========================= */
+
+#gameCanvas{
+position:fixed;
+inset:0;
+width:100%;
+height:100%;
+background:#87ceeb;
+display:block;
+}
+
+/* =========================
+   TOP HUD
+========================= */
+
+#gameUI{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+z-index:50;
+pointer-events:none;
+}
+
+#topBar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:12px;
+gap:10px;
+}
+
+#scoreDisplay{
+font-size:20px;
+font-weight:bold;
+background:rgba(0,0,0,.5);
+padding:8px 14px;
+border-radius:12px;
+}
+
+#characterDisplay{
+background:rgba(0,0,0,.5);
+padding:8px 14px;
+border-radius:12px;
+}
+
+/* =========================
+   HEALTH BAR
+========================= */
+
+#healthContainer{
+width:180px;
+height:24px;
+background:#333;
+border-radius:20px;
+overflow:hidden;
+border:2px solid white;
+}
+
+#healthBar{
+width:100%;
+height:100%;
+background:red;
+}
+
+/* =========================
+   INVENTORY
+========================= */
+
+#inventoryPanel{
+position:fixed;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+width:90%;
+max-width:500px;
+background:#111;
+border:2px solid #555;
+border-radius:20px;
+padding:20px;
+z-index:300;
+}
+
+#inventoryPanel h2{
+text-align:center;
+margin-bottom:15px;
+}
+
+#inventoryItems{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:10px;
+margin-bottom:20px;
+}
+
+.item{
+background:#222;
+padding:15px;
+text-align:center;
+border-radius:10px;
+}
+
+/* =========================
+   QUEST PANEL
+========================= */
+
+#questPanel{
+position:fixed;
+top:70px;
+left:10px;
+background:rgba(0,0,0,.7);
+padding:10px;
+border-radius:10px;
+z-index:40;
+max-width:260px;
+}
+
+#questPanel h3{
+margin-bottom:5px;
+}
+
+/* =========================
+   DIALOGUE BOX
+========================= */
+
+#dialogueBox{
+position:fixed;
+bottom:140px;
+left:50%;
+transform:translateX(-50%);
+width:90%;
+max-width:700px;
+background:rgba(0,0,0,.85);
+padding:18px;
+border-radius:15px;
+z-index:100;
+}
+
+#speakerName{
+font-weight:bold;
+margin-bottom:8px;
+color:#4fc3f7;
+}
+
+#dialogueText{
+font-size:17px;
+line-height:1.4;
+}
+
+/* =========================
+   MOBILE CONTROLS
+========================= */
+
+#mobileControls{
+position:fixed;
+bottom:15px;
+left:0;
+width:100%;
+display:flex;
+justify-content:space-between;
+padding:0 15px;
+z-index:80;
+}
+
+.leftControls,
+.rightControls{
+display:flex;
+gap:10px;
+align-items:flex-end;
+}
+
+#mobileControls button{
+width:70px;
+height:70px;
+border:none;
+border-radius:50%;
+font-size:24px;
+background:rgba(255,255,255,.85);
+color:#111;
+font-weight:bold;
+}
+
+#jumpBtn{
+width:80px;
+height:80px;
+}
+
+#attackBtn{
+width:75px;
+height:75px;
+}
+
+#gadgetBtn{
+width:75px;
+height:75px;
+}
+
+#switchBtn{
+width:65px;
+height:65px;
+}
+
+/* =========================
+   PAUSE MENU
+========================= */
+
+#pauseMenu{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.92);
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+z-index:500;
+}
+
+#pauseMenu h2{
+margin-bottom:30px;
+font-size:2rem;
+}
+
+#pauseMenu button{
+width:220px;
+padding:15px;
+margin:8px;
+border:none;
+border-radius:12px;
+font-size:18px;
+background:#2196f3;
+color:white;
+}
+
+/* =========================
+   ANIMATIONS
+========================= */
+
+@keyframes float{
+
+0%{
+transform:translateY(0);
+}
+
+50%{
+transform:translateY(-5px);
+}
+
+100%{
+transform:translateY(0);
+}
+
+}
+
+.characterCard{
+animation:float 3s infinite;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width:768px){
+
+.logo{
+font-size:1.6rem;
+}
+
+.characterGrid{
+grid-template-columns:1fr;
+}
+
+#mobileControls button{
+width:60px;
+height:60px;
+font-size:20px;
+}
+
+#jumpBtn{
+width:70px;
+height:70px;
+}
+
+}
