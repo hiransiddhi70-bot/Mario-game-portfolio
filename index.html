@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width,
+initial-scale=1.0,
+maximum-scale=1.0,
+user-scalable=no">
+
+<title>Time Rift Adventure</title>
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+<!-- LOADING SCREEN -->
+
+<div id="loadingScreen">
+
+<h1>TIME RIFT ADVENTURE</h1>
+
+<div id="loadingBarContainer">
+<div id="loadingBar"></div>
+</div>
+
+<p>Loading Worlds...</p>
+
+</div>
+
+<!-- MAIN MENU -->
+
+<div id="mainMenu" class="screen hidden">
+
+<h1 class="logo">
+TIME RIFT ADVENTURE
+</h1>
+
+<button id="playBtn">
+PLAY
+</button>
+
+<button id="characterBtn">
+CHARACTERS
+</button>
+
+<button id="achievementBtn">
+ACHIEVEMENTS
+</button>
+
+<button id="settingsBtn">
+SETTINGS
+</button>
+
+</div>
+
+<!-- CHARACTER SELECT -->
+
+<div id="characterScreen"
+class="screen hidden">
+
+<h2>Select Character</h2>
+
+<div class="characterGrid">
+
+<div class="characterCard"
+data-character="doraemon">
+
+<h3>Doraemon</h3>
+
+<p>Gadget Master</p>
+
+</div>
+
+<div class="characterCard"
+data-character="nobita">
+
+<h3>Nobita</h3>
+
+<p>Stealth Expert</p>
+
+</div>
+
+<div class="characterCard"
+data-character="shizuka">
+
+<h3>Shizuka</h3>
+
+<p>Healing Support</p>
+
+</div>
+
+<div class="characterCard"
+data-character="gian">
+
+<h3>Gian</h3>
+
+<p>Tank Fighter</p>
+
+</div>
+
+<div class="characterCard"
+data-character="suneo">
+
+<h3>Suneo</h3>
+
+<p>Tech Hacker</p>
+
+</div>
+
+</div>
+
+<button id="backFromCharacters">
+BACK
+</button>
+
+</div>
+
+<!-- ACHIEVEMENTS -->
+
+<div id="achievementScreen"
+class="screen hidden">
+
+<h2>Achievements</h2>
+
+<div id="achievementList">
+
+<div class="achievement">
+First Dorayaki
+</div>
+
+<div class="achievement">
+Dino Slayer
+</div>
+
+<div class="achievement">
+Time Traveler
+</div>
+
+<div class="achievement">
+Boss Hunter
+</div>
+
+</div>
+
+<button id="backFromAchievements">
+BACK
+</button>
+
+</div>
+
+<!-- SETTINGS -->
+
+<div id="settingsScreen"
+class="screen hidden">
+
+<h2>Settings</h2>
+
+<label>
+
+Music
+
+<input
+type="checkbox"
+id="musicToggle"
+checked>
+
+</label>
+
+<label>
+
+SFX
+
+<input
+type="checkbox"
+id="sfxToggle"
+checked>
+
+</label>
+
+<button id="backFromSettings">
+BACK
+</button>
+
+</div>
+
+<!-- GAME UI -->
+
+<div id="gameUI"
+class="hidden">
+
+<div id="topBar">
+
+<div id="healthContainer">
+
+<div id="healthBar">
+</div>
+
+</div>
+
+<div id="scoreDisplay">
+
+🍩 0
+
+</div>
+
+<div id="characterDisplay">
+
+Doraemon
+
+</div>
+
+</div>
+
+</div>
+
+<!-- INVENTORY -->
+
+<div id="inventoryPanel"
+class="hidden">
+
+<h2>4D Pocket</h2>
+
+<div id="inventoryItems">
+
+<div class="item">
+Anywhere Door
+</div>
+
+<div class="item">
+Bamboo Copter
+</div>
+
+<div class="item">
+Time Cloth
+</div>
+
+<div class="item">
+Big Light
+</div>
+
+<div class="item">
+Small Light
+</div>
+
+</div>
+
+<button id="closeInventory">
+Close
+</button>
+
+</div>
+
+<!-- QUEST PANEL -->
+
+<div id="questPanel">
+
+<h3>Quest</h3>
+
+<p id="currentQuest">
+Collect Time Machine Parts
+</p>
+
+</div>
+
+<!-- DIALOGUE BOX -->
+
+<div id="dialogueBox"
+class="hidden">
+
+<div id="speakerName">
+Doraemon
+</div>
+
+<div id="dialogueText">
+Welcome Adventurer
+</div>
+
+</div>
+
+<!-- GAME CANVAS -->
+
+<canvas id="gameCanvas">
+</canvas>
+
+<!-- MOBILE CONTROLS -->
+
+<div id="mobileControls">
+
+<div class="leftControls">
+
+<button id="leftBtn">
+◀
+</button>
+
+<button id="rightBtn">
+▶
+</button>
+
+</div>
+
+<div class="rightControls">
+
+<button id="jumpBtn">
+⬆
+</button>
+
+<button id="attackBtn">
+⚔
+</button>
+
+<button id="gadgetBtn">
+🎒
+</button>
+
+<button id="switchBtn">
+🔄
+</button>
+
+</div>
+
+</div>
+
+<!-- PAUSE MENU -->
+
+<div id="pauseMenu"
+class="hidden">
+
+<h2>Paused</h2>
+
+<button id="resumeBtn">
+Resume
+</button>
+
+<button id="saveBtn">
+Save
+</button>
+
+<button id="quitBtn">
+Quit
+</button>
+
+</div>
+
+<script src="js/main.js"></script>
+
+</body>
+</html>
